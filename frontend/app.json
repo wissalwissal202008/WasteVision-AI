@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "WasteVision AI",
+    "slug": "wastevision-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#2d5a27"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        { "cameraPermission": "Allow WasteVision to access your camera to scan waste." }
+      ],
+      [
+        "expo-image-picker",
+        { "photosPermission": "Allow WasteVision to access your photos to classify waste." }
+      ]
+    ],
+    "ios": { "bundleIdentifier": "com.wastevision.ai" },
+    "android": { "package": "com.wastevision.ai" }
+  }
+}
