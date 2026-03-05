@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "description": "App mobile de tri des déchets par intelligence artificielle.",
     "splash": {
       "backgroundColor": "#2d5a27"
     },
