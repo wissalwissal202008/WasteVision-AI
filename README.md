@@ -143,6 +143,8 @@ Restart the backend to load the updated model.
 
 ## Documentation
 
+- **[FEATURES.md](FEATURES.md)** – Feature checklist: live camera, eco points, map, AI corrections, env stats, UI  
+- **[docs/INTEGRATION.md](docs/INTEGRATION.md)** – TFLite, Google Maps, offline support, performance tips  
 - **[STACK_AND_FEATURES.md](STACK_AND_FEATURES.md)** – Programming languages (frontend/backend), functionalities, UI languages  
 - **[IMPROVEMENTS.md](IMPROVEMENTS.md)** – 5 improvements (eco score, badges, map, real-time detection, env stats)  
 - **[PITCH.md](PITCH.md)** – 30-second pitch (startup / competition)  
