@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
 import { Card, PrimaryButton, SecondaryButton } from "../components";
 import { colors, spacing, fontSize, borderRadius, getCategoryColor } from "../constants/theme";
 import { submitCorrection } from "../api/client";
+import { awardPointsForScan, awardPointsForCorrection } from "../services/ecoScore";
 
 const CATEGORY_OPTIONS = [
   { key: "plastic", label: "Plastique" },
@@ -56,6 +57,12 @@ export default function ResultScreen({ route, navigation, result: resultProp, ph
   const hasExplanations =
     result.explanation_what || result.explanation_material || result.explanation_use || result.explanation_difference;
 
+  useEffect(() => {
+    if (result?.scan_id && result?.waste_category) {
+      awardPointsForScan(result.scan_id, result.waste_category).catch(() => {});
+    }
+  }, [result?.scan_id, result?.waste_category]);
+
   const handleCorrect = async (correctedCategory) => {
     if (!result.scan_id) {
       Alert.alert("Erreur", "Impossible d'enregistrer la correction pour ce scan.");
@@ -64,11 +71,12 @@ export default function ResultScreen({ route, navigation, result: resultProp, ph
     setCorrecting(true);
     try {
       await submitCorrection(result.scan_id, correctedCategory);
+      await awardPointsForCorrection();
       setCorrectionModalVisible(false);
       setCorrected(true);
       Alert.alert(
         "Merci !",
-        "Votre correction a bien été enregistrée. Elle nous aide à améliorer WasteVision."
+        "Votre correction a bien été enregistrée et aide l'IA à s'améliorer. +5 points éco !"
       );
     } catch (e) {
       Alert.alert("Erreur", e?.message || "La correction n'a pas pu être envoyée.");
@@ -187,6 +195,7 @@ export default function ResultScreen({ route, navigation, result: resultProp, ph
       {corrected && (
         <View style={styles.thankYouBanner}>
           <Text style={styles.thankYouText}>Merci d'avoir aidé à améliorer WasteVision.</Text>
+          <Text style={styles.thankYouHint}>Your corrections are stored and used to build a clean dataset for retraining the AI—every fix makes WasteVision smarter.</Text>
         </View>
       )}
 
@@ -427,6 +436,13 @@ const styles = StyleSheet.create({
     fontSize: fontSize.small,
     color: colors.accentForeground,
     textAlign: "center",
+  },
+  thankYouHint: {
+    fontSize: fontSize.caption,
+    color: colors.accentForeground,
+    textAlign: "center",
+    marginTop: spacing.xs,
+    opacity: 0.9,
   },
   ecoTip: {
     marginTop: spacing.lg,

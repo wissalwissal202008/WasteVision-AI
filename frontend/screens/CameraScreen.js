@@ -5,7 +5,7 @@ import { colors, spacing, fontSize, borderRadius } from "../constants/theme";
 import { PrimaryButton, SecondaryButton, Card } from "../components";
 import { predict } from "../api/client";
 
-export default function CameraScreen({ navigation, onResult }) {
+export default function CameraScreen({ navigation, onResult, onSwitchToLive }) {
   const [loading, setLoading] = useState(false);
 
   const handlePredict = async (uri, type) => {
@@ -82,6 +82,12 @@ export default function CameraScreen({ navigation, onResult }) {
         <View style={styles.actions}>
           <PrimaryButton title="Prendre une photo" onPress={takePhoto} style={styles.button} />
           <SecondaryButton title="Choisir une image" onPress={pickImage} style={styles.button} />
+          {onSwitchToLive && (
+            <TouchableOpacity style={styles.liveButton} onPress={onSwitchToLive}>
+              <Text style={styles.liveButtonText}>📹 Live detection</Text>
+              <Text style={styles.liveButtonHint}>AI analyzes camera in real time</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>
@@ -125,4 +131,15 @@ const styles = StyleSheet.create({
   button: {
     marginBottom: spacing.md,
   },
+  liveButton: {
+    marginTop: spacing.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.lg,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    alignItems: "center",
+  },
+  liveButtonText: { fontSize: fontSize.body, fontWeight: "600", color: colors.primary },
+  liveButtonHint: { fontSize: fontSize.caption, color: colors.textSecondary, marginTop: 4 },
 });

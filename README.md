@@ -144,6 +144,7 @@ Restart the backend to load the updated model.
 ## Documentation
 
 - **[STACK_AND_FEATURES.md](STACK_AND_FEATURES.md)** – Programming languages (frontend/backend), functionalities, UI languages  
+- **[IMPROVEMENTS.md](IMPROVEMENTS.md)** – 5 improvements (eco score, badges, map, real-time detection, env stats)  
 - **[PITCH.md](PITCH.md)** – 30-second pitch (startup / competition)  
 - **[TECHNICAL.md](TECHNICAL.md)** – AI, API, and architecture for developers  
 - **[ROADMAP.md](ROADMAP.md)** – Development phases and next steps  

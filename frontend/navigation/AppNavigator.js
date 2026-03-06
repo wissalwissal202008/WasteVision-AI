@@ -13,23 +13,38 @@ import HistoryScreen from "../screens/HistoryScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import NotificationsScreen from "../screens/NotificationsScreen";
+import MapScreen from "../screens/MapScreen";
+import LiveScanScreen from "../screens/LiveScanScreen";
 
 const Tab = createBottomTabNavigator();
 
 /**
- * Flux Scan sans Stack Navigator (évite le crash "property S of undefined" sur Expo Go).
- * Bascule entre Camera et Result via state.
+ * Scan tab: Camera (photo/gallery), Live detection, or Result.
+ * Keeps existing architecture intact.
  */
 function ScanTab() {
   const [result, setResult] = useState(null);
   const [photoUri, setPhotoUri] = useState(null);
+  const [liveMode, setLiveMode] = useState(false);
 
   if (result) {
     return (
       <ResultScreen
         result={result}
         photoUri={photoUri}
-        onBack={() => setResult(null)}
+        onBack={() => { setResult(null); setPhotoUri(null); }}
+      />
+    );
+  }
+  if (liveMode) {
+    return (
+      <LiveScanScreen
+        onResult={(r, uri) => {
+          setResult(r);
+          setPhotoUri(uri);
+          setLiveMode(false);
+        }}
+        onBack={() => setLiveMode(false)}
       />
     );
   }
@@ -39,6 +54,7 @@ function ScanTab() {
         setResult(r);
         setPhotoUri(uri);
       }}
+      onSwitchToLive={() => setLiveMode(true)}
     />
   );
 }
@@ -50,6 +66,7 @@ function TabIcon({ label, focused }) {
     Stats: "📊",
     Coach: "💬",
     Historique: "📋",
+    Carte: "🗺️",
     Profil: "👤",
     Paramètres: "⚙️",
     Notifications: "🔔",
@@ -82,6 +99,7 @@ export default function AppNavigator() {
         <Tab.Screen name="Stats" component={DashboardScreen} />
         <Tab.Screen name="Coach" component={AssistantScreen} />
         <Tab.Screen name="Historique" component={HistoryScreen} />
+        <Tab.Screen name="Carte" component={MapScreen} />
         <Tab.Screen name="Profil" component={ProfileScreen} />
         <Tab.Screen name="Notifications" component={NotificationsScreen} options={{ tabBarLabel: "Notif" }} />
         <Tab.Screen name="Paramètres" component={SettingsScreen} />

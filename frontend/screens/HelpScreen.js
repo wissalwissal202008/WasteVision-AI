@@ -34,7 +34,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Pourquoi corriger un scan ?",
-    a: "Quand vous corrigez une prédiction, nous utilisons ces données (de manière anonyme) pour améliorer le modèle. Votre aide rend l’app plus précise.",
+    a: "Quand vous corrigez une prédiction, the image and your label are stored to build a clean dataset for retraining the AI. Every correction makes WasteVision more accurate.",
   },
   {
     q: "Où voir l’historique de mes scans ?",

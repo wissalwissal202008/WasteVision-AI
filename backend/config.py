@@ -9,6 +9,7 @@ WEIGHTS_PATH = WEIGHTS_DIR / "model.keras"
 os.makedirs(BASE_DIR / "data", exist_ok=True)
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 os.makedirs(WEIGHTS_DIR, exist_ok=True)
+# 224×224: good balance for classification; keeps inference fast (see docs/INTEGRATION.md § Performance).
 MODEL_INPUT_SIZE = (224, 224)
 NUM_CLASSES = 6
 CATEGORY_NAMES = [

@@ -1,17 +1,28 @@
 import React, { useState, useCallback } from "react";
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { Card } from "../components";
+import { Card, AnimatedProgressBar } from "../components";
 import { colors, spacing, fontSize, borderRadius } from "../constants/theme";
 import { getHistory } from "../api/client";
+import {
+  getEcoScore,
+  getCorrectionsCount,
+  getEcoLevel,
+  getEcoBadges,
+} from "../services/ecoScore";
 
 const WEEKLY_GOAL = 10;
 const KG_CO2_PER_SCAN = 0.05;
+const KG_PLASTIC_PER_SCAN = 0.02;
+const KG_GLASS_PER_SCAN = 0.05;
 
-export default function DashboardScreen() {
+export default function DashboardScreen({ navigation }) {
   const [scansCount, setScansCount] = useState(0);
   const [weeklyCount, setWeeklyCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [ecoScore, setEcoScore] = useState(0);
+  const [correctionsCount, setCorrectionsCount] = useState(0);
+  const [categoryCounts, setCategoryCounts] = useState({});
 
   useFocusEffect(
     useCallback(() => {
@@ -19,7 +30,11 @@ export default function DashboardScreen() {
       (async () => {
         setLoading(true);
         try {
-          const data = await getHistory();
+          const [data, score, corrections] = await Promise.all([
+            getHistory(),
+            getEcoScore(),
+            getCorrectionsCount(),
+          ]);
           const list = Array.isArray(data) ? data : [];
           const now = Date.now();
           const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
@@ -27,13 +42,26 @@ export default function DashboardScreen() {
             const t = r.created_at ? new Date(r.created_at).getTime() : 0;
             return t >= weekAgo;
           });
+          const counts = {};
+          list.forEach((r) => {
+            const cat = r.corrected_category || r.predicted_category || "non_recyclable";
+            counts[cat] = (counts[cat] || 0) + 1;
+          });
           if (!cancelled) {
             setScansCount(list.length);
             setWeeklyCount(weekItems.length);
+            setEcoScore(score);
+            setCorrectionsCount(corrections);
+            setCategoryCounts(counts);
           }
         } catch {
-          if (!cancelled) setScansCount(0);
-          setWeeklyCount(0);
+          if (!cancelled) {
+            setScansCount(0);
+            setWeeklyCount(0);
+            setEcoScore(0);
+            setCorrectionsCount(0);
+            setCategoryCounts({});
+          }
         } finally {
           if (!cancelled) setLoading(false);
         }
@@ -44,6 +72,12 @@ export default function DashboardScreen() {
 
   const co2Saved = Math.round(scansCount * KG_CO2_PER_SCAN * 100) / 100;
   const progress = WEEKLY_GOAL > 0 ? Math.min(weeklyCount / WEEKLY_GOAL, 1) : 0;
+  const level = getEcoLevel(ecoScore);
+  const badges = getEcoBadges(scansCount, correctionsCount, ecoScore);
+  const plasticCount = categoryCounts.plastic || 0;
+  const glassCount = categoryCounts.glass || 0;
+  const kgPlasticAvoided = Math.round((plasticCount * KG_PLASTIC_PER_SCAN) * 100) / 100;
+  const kgGlassRecycled = Math.round((glassCount * KG_GLASS_PER_SCAN) * 100) / 100;
 
   if (loading && scansCount === 0 && weeklyCount === 0) {
     return (
@@ -58,6 +92,18 @@ export default function DashboardScreen() {
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Tableau de bord</Text>
       <Text style={styles.subtitle}>Suivez votre impact écologique</Text>
+
+      {/* Score écologique + niveau */}
+      <View style={styles.scoreCard}>
+        <View style={styles.scoreRow}>
+          <Text style={styles.scoreEmoji}>{level.emoji}</Text>
+          <View style={styles.scoreContent}>
+            <Text style={styles.scoreValue}>{ecoScore} pts</Text>
+            <Text style={styles.scoreLabel}>Score écologique</Text>
+            <Text style={styles.levelName}>{level.name}</Text>
+          </View>
+        </View>
+      </View>
 
       {/* Eco design: gradient stat cards */}
       <View style={styles.statsRow}>
@@ -79,15 +125,56 @@ export default function DashboardScreen() {
       </View>
 
       <Card style={styles.goalCard}>
-        <Text style={styles.goalLabel}>Objectif hebdo</Text>
+        <Text style={styles.goalLabel}>Weekly goal</Text>
         <Text style={styles.goalText}>
           {weeklyCount} / {WEEKLY_GOAL} scans
         </Text>
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: progress * 100 + "%" }]} />
-        </View>
-        <Text style={styles.goalHint}>Scannez pour vous rapprocher de l'objectif</Text>
+        <AnimatedProgressBar progress={progress} height={10} style={styles.goalProgressBar} />
+        <Text style={styles.goalHint}>Keep scanning to reach your goal</Text>
       </Card>
+
+      {/* Global environmental impact with progress indicators */}
+      <Card style={styles.envStatsCard}>
+        <Text style={styles.envStatsTitle}>Environmental impact</Text>
+        <View style={styles.envStatsGrid}>
+          <View style={styles.envStatsItem}>
+            <Text style={styles.envStatsValue}>{scansCount}</Text>
+            <Text style={styles.envStatsLabel}>Objects recycled</Text>
+            <AnimatedProgressBar progress={Math.min(scansCount / 50, 1)} height={6} fillColor={colors.primary} style={styles.envStatBar} />
+          </View>
+          <View style={styles.envStatsItem}>
+            <Text style={styles.envStatsValue}>{kgPlasticAvoided} kg</Text>
+            <Text style={styles.envStatsLabel}>Plastic saved</Text>
+            <AnimatedProgressBar progress={Math.min(kgPlasticAvoided / 2, 1)} height={6} fillColor="#eab308" style={styles.envStatBar} />
+          </View>
+          <View style={styles.envStatsItem}>
+            <Text style={styles.envStatsValue}>{kgGlassRecycled} kg</Text>
+            <Text style={styles.envStatsLabel}>Glass recycled</Text>
+            <AnimatedProgressBar progress={Math.min(kgGlassRecycled / 2, 1)} height={6} fillColor="#3b82f6" style={styles.envStatBar} />
+          </View>
+          <View style={styles.envStatsItem}>
+            <Text style={styles.envStatsValue}>{co2Saved} kg</Text>
+            <Text style={styles.envStatsLabel}>CO₂ saved</Text>
+            <AnimatedProgressBar progress={Math.min(co2Saved / 1, 1)} height={6} fillColor={colors.primary} style={styles.envStatBar} />
+          </View>
+        </View>
+      </Card>
+
+      {/* Badges */}
+      <View style={styles.badgesSection}>
+        <Text style={styles.badgesTitle}>🌟 Badges</Text>
+        <View style={styles.badgesRow}>
+          {badges.map((b) => (
+            <View
+              key={b.id}
+              style={[styles.badgeChip, b.unlocked ? styles.badgeUnlocked : styles.badgeLocked]}
+            >
+              <Text style={styles.badgeEmoji}>{b.unlocked ? b.emoji : "🔒"}</Text>
+              <Text style={styles.badgeName} numberOfLines={1}>{b.name}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
 
       {/* Eco design: impact block */}
       <View style={styles.impactBlock}>
@@ -164,6 +251,51 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.9)",
     marginTop: spacing.xs,
   },
+  scoreCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
+  scoreRow: { flexDirection: "row", alignItems: "center" },
+  scoreEmoji: { fontSize: 48, marginRight: spacing.md },
+  scoreContent: {},
+  scoreValue: { fontSize: fontSize.headline, fontWeight: "700", color: colors.text },
+  scoreLabel: { fontSize: fontSize.caption, color: colors.textSecondary, marginTop: 2 },
+  levelName: { fontSize: fontSize.small, fontWeight: "600", color: colors.primary, marginTop: 4 },
+  envStatsCard: { marginBottom: spacing.lg },
+  envStatsTitle: {
+    fontSize: fontSize.subhead,
+    fontWeight: "700",
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+  envStatsGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  envStatsItem: {
+    minWidth: "47%",
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.md,
+  },
+  envStatsValue: { fontSize: fontSize.subhead, fontWeight: "700", color: colors.primary },
+  envStatsLabel: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
+  badgesSection: { marginBottom: spacing.lg },
+  badgesTitle: { fontSize: fontSize.subhead, fontWeight: "700", color: colors.text, marginBottom: spacing.sm },
+  badgesRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  badgeChip: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    alignItems: "center",
+    minWidth: 80,
+  },
+  badgeUnlocked: { backgroundColor: colors.accent, borderWidth: 1, borderColor: colors.primary },
+  badgeLocked: { backgroundColor: colors.muted, opacity: 0.7 },
+  badgeEmoji: { fontSize: 20 },
+  badgeName: { fontSize: 10, marginTop: 2, color: colors.text },
   impactBlock: {
     backgroundColor: colors.primary,
     borderRadius: borderRadius.xl,
@@ -221,18 +353,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: spacing.md,
   },
-  progressTrack: {
-    height: 8,
-    backgroundColor: colors.border,
-    borderRadius: borderRadius.sm / 2,
-    overflow: "hidden",
-    marginBottom: spacing.sm,
-  },
-  progressFill: {
-    height: "100%",
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.sm / 2,
-  },
   centered: {
     flex: 1,
     justifyContent: "center",
@@ -248,6 +368,8 @@ const styles = StyleSheet.create({
     fontSize: fontSize.caption,
     color: colors.textSecondary,
   },
+  goalProgressBar: { marginTop: spacing.sm },
+  envStatBar: { marginTop: spacing.xs },
   tipCard: {
     backgroundColor: colors.primaryLight,
     borderColor: colors.primary,
