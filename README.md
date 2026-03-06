@@ -1,67 +1,89 @@
-# WasteVision AI
+# WasteVision AI – Smart Waste Recognition 🌱♻️
 
-Application mobile (Android / iOS) et web de **tri des déchets par intelligence artificielle** : scan d’un objet, explication (matière, usage, différence avec les similaires), bac de tri recommandé, impact environnemental et conseil éco. Les utilisateurs peuvent corriger les prédictions pour améliorer le modèle (human-in-the-loop).
+**WasteVision AI** is designed to make waste sorting **simple**, **intelligent**, and **educational**.
+
+Imagine holding an object — a plastic bottle, a food container, or a metal can — and not knowing where to dispose of it. Instead of guessing, you take a photo with the app. The app uses **artificial intelligence and computer vision** to recognize the object and provide:
+
+- **What the object is**
+- **What material it is made of**
+- **Which recycling bin it belongs to**
+- **Its environmental impact**
+
+This helps users avoid recycling mistakes, a major challenge in modern waste management. When waste is sorted incorrectly, recyclable materials often end up in landfills instead of being recycled.
+
+Another powerful feature is **learning from users**. If the AI makes a mistake, users can correct the detection. The system stores these corrections, allowing the model to **continuously improve** over time.
+
+**For organizations, municipalities, and environmental initiatives**, WasteVision AI can help to:
+
+- Improve recycling accuracy  
+- Increase environmental awareness  
+- Reduce waste contamination  
+- Support smarter, more sustainable waste management  
+
+**WasteVision AI demonstrates how artificial intelligence can be applied to real-world environmental challenges, making sustainability accessible to everyone.**
+
+You can run the app **in the browser** (web), **on your phone** (Expo Go or dev build), or install it as a **real app** via an **APK** (Android) or IPA (iOS) — see [BUILD_NATIF.md](BUILD_NATIF.md).
 
 ---
 
-## Fonctionnalités
+## Features
 
-- **Scan** : prise de photo ou choix depuis la galerie
-- **Explication** : qu’est-ce que c’est, de quoi c’est fait, à quoi ça sert, en quoi c’est différent d’objets similaires
-- **Tri** : bac recommandé, impact environnemental, conseil éco
-- **Correction** : signaler une erreur et choisir la bonne catégorie (données utilisées pour réentraîner le modèle)
-- **Historique** des scans et **tableau de bord** d’impact
-- **Coach éco** : conseils et bonnes pratiques
-
----
-
-## Stack technique
-
-| Partie    | Techno |
-|----------|--------|
-| Backend  | Python, FastAPI, Uvicorn, TensorFlow/Keras (MobileNetV2), SQLite |
-| Frontend | React Native, Expo, React Navigation |
-| IA       | Classification 6 catégories (plastique, papier/carton, verre, métal, organique, non recyclable) |
+| Area | Features |
+|------|----------|
+| **Scan** | Take a photo or pick from gallery → instant AI classification |
+| **Result** | Object name, material, recycling bin, eco tips, environmental impact |
+| **Correction** | Report a wrong prediction and choose the correct category (human-in-the-loop) |
+| **History** | Browse past scans, search, filter by category, correct entries |
+| **Dashboard** | Stats and impact (scans, CO₂, goals) |
+| **Coach** | Eco tips and best practices |
+| **Help** | FAQ, quick guide, support (feedback, bug report, app rating) |
 
 ---
 
-## Prérequis
+## Tech Stack
+
+| Layer | Stack |
+|-------|--------|
+| **Frontend** | React Native, Expo, React Navigation (iOS, Android, Web) |
+| **Backend** | Python, FastAPI, Uvicorn, SQLite |
+| **AI** | TensorFlow/Keras, MobileNetV2 – 6 classes: plastic, paper/carton, glass, metal, organic, non-recyclable |
+| **Retraining** | User corrections stored as verified data; `retrain.py` for model updates |
+
+---
+
+## Getting Started
+
+### Prerequisites
 
 - **Node.js** (npm)
-- **Python 3** (pip)
-- Pour le mobile : **Expo Go** sur téléphone (même Wi‑Fi que le PC)
+- **Python 3.10+** (pip)
+- For mobile: **Expo Go** on your phone (same Wi‑Fi as your machine)
 
----
-
-## Installation et lancement
-
-### 1. Cloner le dépôt
+### 1. Clone the repo
 
 ```bash
-git clone https://github.com/TON_USERNAME/wastevision-ai.git
-cd wastevision-ai
+git clone https://github.com/YOUR_USERNAME/WasteVision-AI.git
+cd WasteVision-AI
 ```
-
-*(Remplace `TON_USERNAME` par ton nom d’utilisateur GitHub.)*
 
 ### 2. Backend (API)
 
 ```bash
 cd backend
 python -m venv venv
-# Windows :
+# Windows:
 .\venv\Scripts\activate
-# macOS/Linux :
+# macOS/Linux:
 # source venv/bin/activate
 pip install -r requirements.txt
 python -m uvicorn main:app --host 0.0.0.0 --port 8001
 ```
 
-L’API tourne sur **http://localhost:8001**.
+API runs at **http://localhost:8001** (docs: http://localhost:8001/docs).
 
 ### 3. Frontend (app)
 
-Dans un **autre terminal** :
+In a **separate terminal**:
 
 ```bash
 cd frontend
@@ -69,52 +91,68 @@ npm install
 npx expo start
 ```
 
-- **Web** : appuyer sur `w` pour ouvrir dans le navigateur.
-- **Mobile** : scanner le QR code avec Expo Go (téléphone sur le même Wi‑Fi). L’app détecte automatiquement l’IP du PC pour appeler l’API.
+- **Sur le PC (navigateur)** : appuyer sur **`w`** pour ouvrir l’app dans le navigateur. Voir **[OUVRIR-SUR-PC.md](OUVRIR-SUR-PC.md)** pour les étapes détaillées.  
+- **Mobile (dev)** : scanner le QR code avec Expo Go (téléphone sur le même Wi‑Fi).  
+- **Mobile (vraie app)** : build natif (APK/IPA). Voir **[BUILD_NATIF.md](BUILD_NATIF.md)**.
 
 ---
 
-## Structure du projet
+## Project Structure
 
 ```
 WasteVision-AI/
-├── backend/          # API FastAPI, modèle IA, BDD
-│   ├── app/          # routes, services, repositories
-│   ├── ml/           # modèle, prétraitement, (optionnel) product_detector
+├── backend/              # FastAPI, AI model, DB
+│   ├── app/
+│   │   ├── api/          # predict, classify, correction, history, feedback
+│   │   ├── repositories/
+│   │   └── services/
+│   ├── ml/               # model, preprocessing
 │   ├── main.py
 │   ├── config.py
-│   └── retrain.py    # réentraînement à partir des corrections
-├── frontend/         # React Native (Expo)
+│   └── retrain.py        # retrain from user corrections
+├── frontend/             # React Native (Expo) – main app
 │   ├── screens/
+│   ├── components/
 │   ├── navigation/
 │   ├── api/
 │   └── App.js
-├── DEVELOPMENT_PLAN.md
-├── LICENSE
+├── frontend_flutter/     # Flutter app (Home, Result, Correction, Dashboard)
+│   └── lib/              # see frontend_flutter/README.md
+├── ai_model/             # CNN training + TFLite export (dataset/, train_model.py, convert_tflite.py)
+├── PITCH.md
+├── TECHNICAL.md
+├── ROADMAP.md
+├── STRUCTURE.md
 └── README.md
 ```
 
 ---
 
-## Réentraînement (human-in-the-loop)
+## Retraining (Human-in-the-Loop)
 
-Après des corrections utilisateur, tu peux mettre à jour le modèle :
+After collecting user corrections:
 
 ```bash
 cd backend
 python retrain.py
 ```
 
-Puis redémarrer le backend pour charger le nouveau modèle.
+Restart the backend to load the updated model.
 
 ---
 
-## Contribution
+## Documentation
 
-Les contributions sont les bienvenues (issues, pull requests). Merci de respecter l’esprit du projet : pédagogique, éco-responsable, et centré sur l’amélioration continue du tri.
+- **[STACK_AND_FEATURES.md](STACK_AND_FEATURES.md)** – Programming languages (frontend/backend), functionalities, UI languages  
+- **[PITCH.md](PITCH.md)** – 30-second pitch (startup / competition)  
+- **[TECHNICAL.md](TECHNICAL.md)** – AI, API, and architecture for developers  
+- **[ROADMAP.md](ROADMAP.md)** – Development phases and next steps  
+- **[STRUCTURE.md](STRUCTURE.md)** – Project structure (current repo + Flutter/MongoDB alternative)  
+- **[frontend/LANGUAGES.md](frontend/LANGUAGES.md)** – How UI languages work and how to add i18n  
+- **[DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)** – Product and UX specifications  
 
 ---
 
-## Licence
+## License
 
-Ce projet est sous licence **MIT**. Voir le fichier [LICENSE](LICENSE).
+This project is under the **MIT** license. See [LICENSE](LICENSE).

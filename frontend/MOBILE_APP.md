@@ -2,17 +2,20 @@
 
 WasteVision AI est une **application mobile** (Android et iOS), développée avec **React Native** et **Expo**. Elle peut aussi s’ouvrir dans un navigateur (web).
 
+**Pour une vraie app sur le téléphone (pas Expo Go)** : voir **[BUILD_NATIF.md](../BUILD_NATIF.md)** à la racine du projet (EAS Build, `expo run:android`, Flutter).
+
 ---
 
 ## Utilisation en mode mobile
 
-### Option 1 : Expo Go (développement / test)
+### Option 1 : Expo Go (développement / test uniquement)
 - Installe **Expo Go** sur ton téléphone (Play Store / App Store).
 - Lance le projet : `npx expo start`
-- Scanne le QR code avec ton téléphone → l’app s’ouvre dans Expo Go.
+- Scanne le QR code avec ton téléphone → l’app s’ouvre dans Expo Go.  
+- **Limite** : ce n’est pas une app standalone ; pour distribuer ou une démo « vraie app », utilise le build natif (voir ci‑dessous).
 
-### Option 2 : App installable (APK Android)
-Pour obtenir un fichier **.apk** à installer sur Android sans Expo Go :
+### Option 2 : Vraie app installable (build natif)
+Pour une **app installable** sur le téléphone (APK Android, ou IPA iOS) **sans Expo Go** :
 
 1. **Avec EAS Build (Expo, compte gratuit)**  
    - Installe EAS CLI : `npm install -g eas-cli`  

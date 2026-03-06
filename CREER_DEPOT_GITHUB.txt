@@ -1,0 +1,16 @@
+Le dépôt GitHub n'existe pas encore. Pour corriger l'erreur "The repository does not seem to exist anymore" :
+
+1. Ouvre ce lien (connecté à ton compte GitHub) :
+   https://github.com/new
+
+2. Remplis :
+   - Repository name : WasteVisionAi
+   - Public
+   - NE COCHE PAS "Add a README file"
+
+3. Clique sur "Create repository"
+
+4. Retourne dans ton application Git (GitHub Desktop, etc.) et clique sur "Publish branch" ou "Push".
+
+Ton remote est déjà correct : https://github.com/wissal/WasteVisionAi.git
+Il manque seulement la création du dépôt sur le site GitHub.

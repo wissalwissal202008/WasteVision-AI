@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { Card, PrimaryButton } from "../components";
-import { colors, spacing, fontSize } from "../constants/theme";
+import { colors, spacing, fontSize, borderRadius } from "../constants/theme";
 import { getHistory } from "../api/client";
 
 const KG_CO2_PER_SCAN = 0.05;
@@ -35,25 +35,36 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.logo}>WasteVision</Text>
-        <Text style={styles.tagline}>Tri intelligent, impact positif</Text>
+      {/* Hero card – eco design */}
+      <View style={styles.heroCard}>
+        <View style={styles.heroContent}>
+          <Text style={styles.heroIcon}>✨</Text>
+          <Text style={styles.heroTitle}>Scanner un déchet</Text>
+          <Text style={styles.heroSub}>
+            Prenez une photo de votre déchet pour découvrir comment le recycler correctement. L'IA vous guidera !
+          </Text>
+          <PrimaryButton
+            title="Prendre une photo"
+            onPress={() => navigation.navigate("Scan")}
+            style={styles.mainButton}
+          />
+        </View>
       </View>
 
-      <Card style={styles.ctaCard} elevated>
-        <Text style={styles.ctaTitle}>Scannez un déchet</Text>
-        <Text style={styles.ctaSub}>
-          Une photo, un geste pour la planète. Obtenez le bon bac en une seconde.
-        </Text>
-        <PrimaryButton
-          title="Scanner un déchet"
-          onPress={() => navigation.navigate("Scan")}
-          style={styles.mainButton}
-        />
-      </Card>
+      {/* Comment ça marche – eco design */}
+      <View style={styles.infoCard}>
+        <Text style={styles.infoIcon}>ℹ️</Text>
+        <Text style={styles.infoTitle}>Comment ça marche ?</Text>
+        <View style={styles.infoList}>
+          <Text style={styles.infoStep}><Text style={styles.infoStepNum}>1.</Text> Prenez une photo nette de votre déchet</Text>
+          <Text style={styles.infoStep}><Text style={styles.infoStepNum}>2.</Text> L'IA identifie automatiquement l'objet</Text>
+          <Text style={styles.infoStep}><Text style={styles.infoStepNum}>3.</Text> Suivez les conseils de recyclage adaptés</Text>
+        </View>
+      </View>
 
+      {/* Impact – compact */}
       <Card style={styles.impactCard}>
-        <Text style={styles.impactLabel}>Votre impact cette semaine</Text>
+        <Text style={styles.impactLabel}>Votre impact</Text>
         <View style={styles.impactRow}>
           <View style={styles.impactItem}>
             <Text style={styles.impactValue}>{showImpact ? totalScans : "—"}</Text>
@@ -66,7 +77,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
         <Text style={styles.impactHint}>
-          {showImpact && totalScans > 0 ? "Continuez comme ça !" : "Scannez pour commencer à compter"}
+          {showImpact && totalScans > 0 ? "Continuez comme ça !" : "Scannez pour commencer"}
         </Text>
       </Card>
     </View>
@@ -80,44 +91,74 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingTop: spacing.xl,
   },
-  header: {
-    marginBottom: spacing.xl,
-  },
-  logo: {
-    fontSize: fontSize.display,
-    fontWeight: "700",
-    color: colors.primary,
-    letterSpacing: -0.5,
-  },
-  tagline: {
-    fontSize: fontSize.body,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
-  },
-  ctaCard: {
-    marginBottom: spacing.lg,
+  heroCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xxl,
     padding: spacing.lg,
+    marginBottom: spacing.lg,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  ctaTitle: {
-    fontSize: fontSize.title,
-    fontWeight: "600",
+  heroContent: {},
+  heroIcon: {
+    fontSize: 28,
+    marginBottom: spacing.sm,
+  },
+  heroTitle: {
+    fontSize: fontSize.headline,
+    fontWeight: "700",
     color: colors.text,
     marginBottom: spacing.sm,
   },
-  ctaSub: {
+  heroSub: {
     fontSize: fontSize.body,
     color: colors.textSecondary,
     marginBottom: spacing.lg,
     lineHeight: 22,
   },
   mainButton: {
-    marginTop: spacing.xs,
+    backgroundColor: colors.primary,
+  },
+  infoCard: {
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  infoIcon: {
+    fontSize: 22,
+    marginBottom: spacing.xs,
+  },
+  infoTitle: {
+    fontSize: fontSize.subhead,
+    fontWeight: "700",
+    color: colors.textOnPrimary,
+    marginBottom: spacing.sm,
+  },
+  infoList: {},
+  infoStep: {
+    fontSize: fontSize.small,
+    color: "rgba(255,255,255,0.95)",
+    marginBottom: spacing.xs,
+    lineHeight: 20,
+  },
+  infoStepNum: {
+    fontWeight: "700",
+    color: colors.textOnPrimary,
   },
   impactCard: {
     padding: spacing.lg,
   },
   impactLabel: {
-    fontSize: fontSize.small,
+    fontSize: fontSize.caption,
     color: colors.textSecondary,
     marginBottom: spacing.md,
     textTransform: "uppercase",

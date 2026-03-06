@@ -56,18 +56,26 @@ export default function DashboardScreen() {
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Votre impact</Text>
-      <Text style={styles.subtitle}>Statistiques et objectif de la semaine</Text>
+      <Text style={styles.title}>Tableau de bord</Text>
+      <Text style={styles.subtitle}>Suivez votre impact écologique</Text>
 
+      {/* Eco design: gradient stat cards */}
       <View style={styles.statsRow}>
-        <Card style={styles.statCard}>
-          <Text style={styles.statValue}>{scansCount}</Text>
-          <Text style={styles.statLabel}>Déchets triés</Text>
-        </Card>
-        <Card style={styles.statCard}>
-          <Text style={styles.statValue}>{co2Saved} kg</Text>
-          <Text style={styles.statLabel}>CO₂ évité</Text>
-        </Card>
+        <View style={[styles.statCardEco, styles.statCardEmerald]}>
+          <Text style={styles.statCardEcoEmoji}>♻️</Text>
+          <Text style={styles.statCardEcoValue}>{scansCount}</Text>
+          <Text style={styles.statCardEcoLabel}>Déchets triés</Text>
+        </View>
+        <View style={[styles.statCardEco, styles.statCardBlue]}>
+          <Text style={styles.statCardEcoEmoji}>💧</Text>
+          <Text style={styles.statCardEcoValue}>{co2Saved} kg</Text>
+          <Text style={styles.statCardEcoLabel}>CO₂ évité</Text>
+        </View>
+        <View style={[styles.statCardEco, styles.statCardLime]}>
+          <Text style={styles.statCardEcoEmoji}>🌱</Text>
+          <Text style={styles.statCardEcoValue}>{weeklyCount}</Text>
+          <Text style={styles.statCardEcoLabel}>Cette semaine</Text>
+        </View>
       </View>
 
       <Card style={styles.goalCard}>
@@ -80,6 +88,22 @@ export default function DashboardScreen() {
         </View>
         <Text style={styles.goalHint}>Scannez pour vous rapprocher de l'objectif</Text>
       </Card>
+
+      {/* Eco design: impact block */}
+      <View style={styles.impactBlock}>
+        <Text style={styles.impactBlockEmoji}>🌍</Text>
+        <Text style={styles.impactBlockTitle}>Votre impact écologique</Text>
+        <View style={styles.impactBlockRow}>
+          <View style={styles.impactBlockItem}>
+            <Text style={styles.impactBlockValue}>{co2Saved} kg</Text>
+            <Text style={styles.impactBlockLabel}>CO₂ économisé</Text>
+          </View>
+          <View style={styles.impactBlockItem}>
+            <Text style={styles.impactBlockValue}>{scansCount}</Text>
+            <Text style={styles.impactBlockLabel}>objets triés</Text>
+          </View>
+        </View>
+      </View>
 
       <Card style={styles.tipCard}>
         <Text style={styles.tipTitle}>Le saviez-vous ?</Text>
@@ -112,7 +136,58 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: "row",
     marginBottom: spacing.lg,
-    gap: spacing.md,
+    gap: spacing.sm,
+  },
+  statCardEco: {
+    flex: 1,
+    borderRadius: borderRadius.xl,
+    padding: spacing.md,
+    alignItems: "center",
+    minHeight: 100,
+    justifyContent: "center",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  statCardEmerald: { backgroundColor: colors.primary },
+  statCardBlue: { backgroundColor: "#3b82f6" },
+  statCardLime: { backgroundColor: "#84cc16" },
+  statCardEcoEmoji: { fontSize: 24, marginBottom: spacing.xs },
+  statCardEcoValue: {
+    fontSize: fontSize.headline,
+    fontWeight: "700",
+    color: colors.textOnPrimary,
+  },
+  statCardEcoLabel: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.9)",
+    marginTop: spacing.xs,
+  },
+  impactBlock: {
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  impactBlockEmoji: { fontSize: 28, marginBottom: spacing.xs },
+  impactBlockTitle: {
+    fontSize: fontSize.subhead,
+    fontWeight: "700",
+    color: colors.textOnPrimary,
+    marginBottom: spacing.md,
+  },
+  impactBlockRow: { flexDirection: "row" },
+  impactBlockItem: { flex: 1, alignItems: "center" },
+  impactBlockValue: {
+    fontSize: fontSize.headline,
+    fontWeight: "700",
+    color: colors.textOnPrimary,
+  },
+  impactBlockLabel: {
+    fontSize: fontSize.caption,
+    color: "rgba(255,255,255,0.9)",
+    marginTop: spacing.xs,
   },
   statCard: {
     flex: 1,

@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Card, PrimaryButton, SecondaryButton } from "../components";
-import { colors, spacing, fontSize, borderRadius } from "../constants/theme";
+import { colors, spacing, fontSize, borderRadius, getCategoryColor } from "../constants/theme";
 import { submitCorrection } from "../api/client";
 
 const CATEGORY_OPTIONS = [
@@ -51,6 +51,8 @@ export default function ResultScreen({ route, navigation, result: resultProp, ph
   const confidencePercent = Math.round((result.confidence || 0) * 100);
   const isLowConfidence = (result.confidence || 0) < CONFIDENCE_LOW_THRESHOLD;
   const productLabel = result.product_type || result.object_name;
+  const categoryKey = result.waste_category || "non_recyclable";
+  const categoryColor = getCategoryColor(categoryKey);
   const hasExplanations =
     result.explanation_what || result.explanation_material || result.explanation_use || result.explanation_difference;
 
@@ -77,16 +79,29 @@ export default function ResultScreen({ route, navigation, result: resultProp, ph
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-      {photoUri ? (
-        <View style={styles.photoWrap}>
-          <Image source={{ uri: photoUri }} style={styles.photo} resizeMode="cover" />
-        </View>
-      ) : null}
+      {/* Eco design: white result card */}
+      <View style={styles.resultCard}>
+        {photoUri ? (
+          <View style={styles.photoWrap}>
+            <Image source={{ uri: photoUri }} style={styles.photo} resizeMode="cover" />
+            <View style={styles.photoOverlay} />
+            <View style={styles.successBadge}>
+              <Text style={styles.successBadgeIcon}>✓</Text>
+            </View>
+          </View>
+        ) : null}
 
-      <View style={styles.badge}>
-        <Text style={styles.badgeLabel}>Objet détecté</Text>
-        <Text style={styles.badgeName}>{productLabel}</Text>
-        <Text style={styles.badgeConfidence}>{confidencePercent} % de confiance</Text>
+        <View style={styles.resultBody}>
+          <Text style={styles.resultObjectName}>{productLabel}</Text>
+          <Text style={styles.resultMaterial}>{result.object_name || categoryKey.replace(/_/g, " ")}</Text>
+
+          {/* Category badge – eco colored pill */}
+          <View style={[styles.categoryBadge, { backgroundColor: categoryColor.light }]}>
+            <Text style={[styles.categoryBadgeText, { color: categoryColor.text }]}>
+              ♻️ {CATEGORY_OPTIONS.find((o) => o.key === categoryKey)?.label || categoryKey.replace(/_/g, " ")}
+            </Text>
+          </View>
+        </View>
       </View>
 
       {isLowConfidence && (
@@ -143,29 +158,42 @@ export default function ResultScreen({ route, navigation, result: resultProp, ph
         <Text style={styles.cardText}>{result.environmental_impact}</Text>
       </Card>
 
-      <Card style={[styles.card, styles.tipCard]}>
-        <Text style={styles.tipLabel}>Conseil éco</Text>
-        <Text style={styles.tipText}>{result.eco_tip}</Text>
-      </Card>
+      {/* Eco design: conseil écologique with category tint */}
+      <View style={[styles.tipCardEco, { backgroundColor: categoryColor.light }]}>
+        <View style={[styles.tipCardEcoIcon, { backgroundColor: categoryColor.bg }]}>
+          <Text style={styles.tipCardEcoIconText}>🌱</Text>
+        </View>
+        <View style={styles.tipCardEcoContent}>
+          <Text style={[styles.tipCardEcoTitle, { color: categoryColor.text }]}>Conseil écologique</Text>
+          <Text style={[styles.tipCardEcoText, { color: categoryColor.text }]}>{result.eco_tip}</Text>
+        </View>
+      </View>
 
-      {result.scan_id && !corrected && (
-        <SecondaryButton
-          title="Ce n'est pas correct ? Corriger la catégorie"
-          onPress={() => setCorrectionModalVisible(true)}
-          style={styles.correctButton}
+      {/* Eco design: action buttons row */}
+      <View style={styles.actionRow}>
+        {result.scan_id && !corrected && (
+          <SecondaryButton
+            title="Corriger"
+            onPress={() => setCorrectionModalVisible(true)}
+            style={[styles.correctButton, styles.actionButton]}
+          />
+        )}
+        <PrimaryButton
+          title="Nouveau scan"
+          onPress={goBack}
+          style={styles.actionButton}
         />
-      )}
+      </View>
       {corrected && (
         <View style={styles.thankYouBanner}>
           <Text style={styles.thankYouText}>Merci d'avoir aidé à améliorer WasteVision.</Text>
         </View>
       )}
 
-      <PrimaryButton
-        title="Scanner un autre déchet"
-        onPress={goBack}
-        style={styles.button}
-      />
+      {/* Eco design: tip */}
+      <View style={styles.ecoTip}>
+        <Text style={styles.ecoTipText}>💡 Si la détection est incorrecte, utilisez "Corriger" pour améliorer l'IA</Text>
+      </View>
 
       <Modal
         visible={correctionModalVisible}
@@ -220,41 +248,76 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: spacing.xxl,
   },
-  photoWrap: {
+  resultCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xxl,
     marginBottom: spacing.lg,
-    borderRadius: borderRadius.lg,
     overflow: "hidden",
-    backgroundColor: colors.border,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  photoWrap: {
+    position: "relative",
+    height: 220,
+    backgroundColor: colors.muted,
   },
   photo: {
     width: "100%",
-    aspectRatio: 1,
+    height: "100%",
   },
-  badge: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.md,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
+  photoOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.15)",
+  },
+  successBadge: {
+    position: "absolute",
+    top: spacing.md,
+    right: spacing.md,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.surface,
     alignItems: "center",
+    justifyContent: "center",
+    shadowRadius: 8,
+    shadowOpacity: 0.15,
+    elevation: 3,
   },
-  badgeLabel: {
-    fontSize: fontSize.caption,
-    color: colors.textOnPrimary,
-    opacity: 0.9,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+  successBadgeIcon: {
+    fontSize: 22,
+    color: colors.primary,
+    fontWeight: "700",
   },
-  badgeName: {
+  resultBody: {
+    padding: spacing.lg,
+  },
+  resultObjectName: {
     fontSize: fontSize.headline,
     fontWeight: "700",
-    color: colors.textOnPrimary,
-    marginTop: spacing.xs,
+    color: colors.text,
+    marginBottom: spacing.xs,
   },
-  badgeConfidence: {
+  resultMaterial: {
+    fontSize: fontSize.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+  categoryBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  categoryBadgeText: {
     fontSize: fontSize.small,
-    color: colors.textOnPrimary,
-    opacity: 0.9,
-    marginTop: spacing.xs,
+    fontWeight: "700",
   },
   lowConfidenceCard: {
     marginBottom: spacing.lg,
@@ -273,7 +336,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fontSize.subhead,
     fontWeight: "600",
-    color: colors.primaryDark,
+    color: colors.primary,
     marginBottom: spacing.md,
   },
   explanationBlock: {
@@ -318,21 +381,38 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.primary,
   },
-  tipCard: {
-    backgroundColor: colors.accentLight,
-    borderColor: colors.accent,
+  tipCardEco: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: spacing.md,
+    borderRadius: borderRadius.xl,
+    marginBottom: spacing.lg,
   },
-  tipLabel: {
-    fontSize: fontSize.caption,
-    color: colors.primaryDark,
-    fontWeight: "600",
+  tipCardEcoIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.sm,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: spacing.md,
+  },
+  tipCardEcoIconText: { fontSize: 20 },
+  tipCardEcoContent: { flex: 1 },
+  tipCardEcoTitle: {
+    fontSize: fontSize.small,
+    fontWeight: "700",
     marginBottom: spacing.xs,
   },
-  tipText: {
-    fontSize: fontSize.body,
-    color: colors.text,
-    lineHeight: 22,
+  tipCardEcoText: {
+    fontSize: fontSize.small,
+    lineHeight: 20,
   },
+  actionRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  actionButton: { flex: 1 },
   correctButton: {
     marginTop: spacing.sm,
     marginBottom: spacing.sm,
@@ -340,16 +420,26 @@ const styles = StyleSheet.create({
   thankYouBanner: {
     padding: spacing.md,
     marginBottom: spacing.md,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.accent,
     borderRadius: borderRadius.md,
   },
   thankYouText: {
     fontSize: fontSize.small,
-    color: colors.textOnPrimary,
+    color: colors.accentForeground,
     textAlign: "center",
   },
-  button: {
+  ecoTip: {
     marginTop: spacing.lg,
+    padding: spacing.md,
+    backgroundColor: "#dbeafe",
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: "#93c5fd",
+  },
+  ecoTipText: {
+    fontSize: fontSize.small,
+    color: "#1e40af",
+    textAlign: "center",
   },
   error: {
     fontSize: fontSize.body,

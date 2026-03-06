@@ -40,5 +40,25 @@ def init_db():
                 conn.commit()
             except sqlite3.OperationalError:
                 pass
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                type TEXT NOT NULL,
+                content TEXT,
+                rating INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS corrections (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                object_name TEXT NOT NULL,
+                correct_label TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
     finally:
         conn.close()

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -6,9 +6,11 @@ import {
   FlatList,
   Image,
   RefreshControl,
+  TextInput,
+  TouchableOpacity,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { Card } from "../components";
+import { Card, EmptyState, ErrorState, NoInternetState } from "../components";
 import { colors, spacing, fontSize, borderRadius } from "../constants/theme";
 import { getHistory, getUploadUrl } from "../api/client";
 
@@ -16,7 +18,7 @@ const CATEGORY_LABELS = {
   plastic: "Plastique",
   paper_cardboard: "Papier / Carton",
   glass: "Verre",
-  metal: "Métal",
+  metal: "M?tal",
   organic: "Organique",
   non_recyclable: "Non recyclable",
 };
@@ -50,7 +52,7 @@ function HistoryItem({ item }) {
           />
         ) : (
           <View style={[styles.itemThumb, styles.itemThumbPlaceholder]}>
-            <Text style={styles.itemThumbPlaceholderText}>📷</Text>
+            <Text style={styles.itemThumbPlaceholderText}>??</Text>
           </View>
         )}
         <View style={styles.itemContent}>
@@ -68,6 +70,8 @@ export default function HistoryScreen({ navigation }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
 
   const load = useCallback(async () => {
     setError(null);
@@ -76,18 +80,33 @@ export default function HistoryScreen({ navigation }) {
       const data = await getHistory();
       setItems(Array.isArray(data) ? data : []);
     } catch (e) {
-      setError(e.message || "Impossible de charger l’historique");
+      setError(e.message || "Impossible de charger l'historique");
       setItems([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load])
-  );
+  useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  const CATEGORY_KEYS = ["all", ...Object.keys(CATEGORY_LABELS)];
+  const filteredItems = useMemo(() => {
+    let list = items;
+    if (filterCategory !== "all") {
+      list = list.filter((i) => (i.predicted_category || i.corrected_category) === filterCategory);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      list = list.filter(
+        (i) =>
+          (i.object_name || "").toLowerCase().includes(q) ||
+          (i.product_type || "").toLowerCase().includes(q) ||
+          (i.recommended_bin || "").toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [items, filterCategory, searchQuery]);
+  const isNetworkError = error && (/\b(network|fetch|connexion)\b/i.test(error));
 
   return (
     <View style={styles.container}>
@@ -96,28 +115,57 @@ export default function HistoryScreen({ navigation }) {
         <Text style={styles.subtitle}>Vos derniers scans</Text>
       </View>
 
-      {error ? (
-        <Text style={styles.error}>{error}</Text>
-      ) : null}
+      {!error && items.length > 0 && (
+        <>
+          <TextInput style={styles.search} placeholder="Rechercher (produit, bac?)" placeholderTextColor={colors.textSecondary} value={searchQuery} onChangeText={setSearchQuery} />
+          <View style={styles.filterRow}>
+            {CATEGORY_KEYS.map((key) => (
+              <TouchableOpacity key={key} style={[styles.filterChip, filterCategory === key && styles.filterChipActive]} onPress={() => setFilterCategory(key)}>
+                <Text style={[styles.filterChipText, filterCategory === key && styles.filterChipTextActive]}>{key === "all" ? "Tous" : CATEGORY_LABELS[key] || key}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
+      )}
+      {error && (
+        <View style={styles.stateWrap}>
+          {isNetworkError ? <NoInternetState onRetry={load} /> : <ErrorState title="Erreur" message={error} onRetry={load} />}
+        </View>
+      )}
 
       {loading && items.length === 0 ? (
-        <Text style={styles.empty}>Chargement…</Text>
+        <Text style={styles.empty}>Chargement?</Text>
       ) : items.length === 0 ? (
-        <Card style={styles.emptyCard}>
-          <Text style={styles.emptyTitle}>Aucun scan</Text>
-          <Text style={styles.emptyText}>
-            Utilisez l’onglet Scan pour identifier un déchet. Vos scans apparaîtront ici.
-          </Text>
-        </Card>
+        <View style={styles.stateWrap}>
+          <EmptyState
+            icon="??"
+            title="Aucun scan"
+            message="Scannez un d?chet pour commencer. Vos scans s'afficheront ici."
+            actionLabel="Faire un scan"
+            onAction={() => navigation?.navigate("Scan")}
+          />
+        </View>
       ) : (
         <FlatList
-          data={items}
+          data={filteredItems}
           keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => <HistoryItem item={item} />}
           contentContainerStyle={styles.list}
-          refreshControl={
-            <RefreshControl refreshing={loading} onRefresh={load} colors={[colors.primary]} />
+          ListEmptyComponent={
+            <View style={styles.stateWrap}>
+              <EmptyState
+                icon="??"
+                title="Aucun r?sultat"
+                message="Aucun scan ne correspond ? la recherche ou au filtre."
+                actionLabel="R?initialiser"
+                onAction={() => {
+                  setSearchQuery("");
+                  setFilterCategory("all");
+                }}
+              />
+            </View>
           }
+          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} colors={[colors.primary]} />}
         />
       )}
     </View>
@@ -213,19 +261,47 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: spacing.xl,
   },
-  emptyCard: {
-    marginHorizontal: spacing.lg,
-    padding: spacing.lg,
-  },
-  emptyTitle: {
-    fontSize: fontSize.subhead,
-    fontWeight: "600",
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  emptyText: {
+  search: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     fontSize: fontSize.body,
+    color: colors.text,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filterRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  filterChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filterChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filterChipText: {
+    fontSize: fontSize.small,
     color: colors.textSecondary,
-    lineHeight: 22,
+  },
+  filterChipTextActive: {
+    color: colors.textOnPrimary,
+    fontWeight: "600",
+  },
+  stateWrap: {
+    flex: 1,
+    padding: spacing.lg,
   },
 });

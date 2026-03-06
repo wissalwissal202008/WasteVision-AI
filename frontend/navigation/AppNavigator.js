@@ -10,6 +10,9 @@ import ResultScreen from "../screens/ResultScreen";
 import DashboardScreen from "../screens/DashboardScreen";
 import AssistantScreen from "../screens/AssistantScreen";
 import HistoryScreen from "../screens/HistoryScreen";
+import ProfileScreen from "../screens/ProfileScreen";
+import SettingsScreen from "../screens/SettingsScreen";
+import NotificationsScreen from "../screens/NotificationsScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -41,22 +44,20 @@ function ScanTab() {
 }
 
 function TabIcon({ label, focused }) {
-  const icons = {
-    Accueil: "home",
-    Scan: "camera",
-    Stats: "bar-chart",
-    Coach: "message-circle",
-    Historique: "list",
+  const emoji = {
+    Accueil: "🏠",
+    Scan: "📷",
+    Stats: "📊",
+    Coach: "💬",
+    Historique: "📋",
+    Profil: "👤",
+    Paramètres: "⚙️",
+    Notifications: "🔔",
   };
-  const name = icons[label] || "circle";
   return (
     <View style={styles.tabIcon}>
       <Text style={[styles.tabEmoji, focused && styles.tabEmojiFocused]}>
-        {label === "Accueil" && (focused ? "🏠" : "🏠")}
-        {label === "Scan" && (focused ? "📷" : "📷")}
-        {label === "Stats" && (focused ? "📊" : "📊")}
-        {label === "Coach" && (focused ? "💬" : "💬")}
-        {label === "Historique" && (focused ? "📋" : "📋")}
+        {emoji[label] || "•"}
       </Text>
     </View>
   );
@@ -81,6 +82,9 @@ export default function AppNavigator() {
         <Tab.Screen name="Stats" component={DashboardScreen} />
         <Tab.Screen name="Coach" component={AssistantScreen} />
         <Tab.Screen name="Historique" component={HistoryScreen} />
+        <Tab.Screen name="Profil" component={ProfileScreen} />
+        <Tab.Screen name="Notifications" component={NotificationsScreen} options={{ tabBarLabel: "Notif" }} />
+        <Tab.Screen name="Paramètres" component={SettingsScreen} />
       </Tab.Navigator>
       </NavigationContainer>
     </View>

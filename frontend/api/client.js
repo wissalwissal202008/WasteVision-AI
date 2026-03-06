@@ -74,3 +74,24 @@ export async function submitCorrection(scanId, correctedCategory) {
   }
   return res.json();
 }
+
+/**
+ * Envoyer un retour utilisateur : bug, suggestion ou notation.
+ * @param {{ type: 'bug'|'suggestion'|'rating', content?: string, rating?: number }} payload
+ */
+export async function submitFeedback(payload) {
+  const res = await fetch(`${API_BASE}/feedback`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      type: payload.type,
+      content: payload.content || null,
+      rating: payload.rating ?? null,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || "Envoi du retour impossible");
+  }
+  return res.json();
+}

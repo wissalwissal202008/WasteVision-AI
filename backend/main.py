@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.api import history, predict
+from app.api import classify, correction, feedback, history, predict
 from app.database import init_db
 import config
 
@@ -31,7 +31,10 @@ app.add_middleware(
 )
 
 app.include_router(predict.router)
+app.include_router(classify.router)
+app.include_router(correction.router)
 app.include_router(history.router)
+app.include_router(feedback.router)
 
 uploads_path = Path(config.UPLOADS_DIR)
 uploads_path.mkdir(parents=True, exist_ok=True)
