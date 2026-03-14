@@ -31,20 +31,7 @@ This document maps each requested enhancement to the existing codebase. **No reb
 
 ---
 
-## 3. Recycling map
-
-| Requirement | Status | Where |
-|-------------|--------|--------|
-| Map with nearby recycling points | Done | `frontend/screens/MapScreen.js` |
-| Geolocation | Done | `expo-location` – user position on map |
-| Distance to each point | Done | Haversine; list sorted by distance, distance shown in list |
-| Google Maps / Mapbox | Config | Uses `react-native-maps`. For real data + API key: `docs/INTEGRATION.md` |
-
-**Note:** Map uses mock points for demo. Replace with Google Places or your API as in `docs/INTEGRATION.md`.
-
----
-
-## 4. User-corrected AI learning
+## 3. User-corrected AI learning
 
 | Requirement | Status | Where |
 |-------------|--------|--------|
@@ -56,7 +43,7 @@ This document maps each requested enhancement to the existing codebase. **No reb
 
 ---
 
-## 5. Environmental stats
+## 4. Environmental stats
 
 | Requirement | Status | Where |
 |-------------|--------|--------|
@@ -69,11 +56,11 @@ Formulas in `DashboardScreen.js`: `KG_CO2_PER_SCAN`, `KG_PLASTIC_PER_SCAN`, `KG_
 
 ---
 
-## 6. UI/UX
+## 5. UI/UX
 
 | Requirement | Status | Where |
 |-------------|--------|--------|
-| Modern, eco-friendly, card-based design | Done | `frontend/constants/theme.js` (emerald, light green bg); cards on Dashboard, Result, Map list |
+| Modern, eco-friendly, card-based design | Done | `frontend/constants/theme.js` (emerald, light green bg); cards on Dashboard, Result, History |
 | Color coding by waste type | Done | `theme.js` `category` + `getCategoryColor()`; `wasteTypeColors.js` `getWasteTypeLabel`, `getWasteTypeColors` |
 | Smooth responsive animations | Done | `AnimatedProgressBar`; LayoutAnimation in HelpScreen; existing transitions |
 
@@ -96,10 +83,11 @@ Green = recyclable accents; yellow = plastic; blue = glass; red/gray = non-recyc
 |------------|--------|
 | Live detection | `frontend/screens/LiveScanScreen.js`, `CameraScreen.js` (entry), `AppNavigator.js` (Scan tab) |
 | Eco points & dashboard | `frontend/services/ecoScore.js`, `frontend/screens/DashboardScreen.js` |
-| Map | `frontend/screens/MapScreen.js` |
 | AI feedback (corrections) | `frontend/screens/ResultScreen.js`, `frontend/api/client.js` (`submitCorrection`), backend `PATCH /history/:id/correct`, `backend/docs/DATASET_STRUCTURE.md` |
 | UI/UX (theme, colors, progress) | `frontend/constants/theme.js`, `frontend/constants/wasteTypeColors.js`, `frontend/components/AnimatedProgressBar.js` |
-| Integration (TFLite, Maps, offline) | `docs/INTEGRATION.md` |
+| Integration (TFLite, offline) | `docs/INTEGRATION.md` |
+
+**Note:** The Recycling Map feature is not part of the app. No map or location-based UI is used.
 
 ---
 

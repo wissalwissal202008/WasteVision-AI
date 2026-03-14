@@ -3,14 +3,19 @@ import "react-native-gesture-handler";
 import { enableScreens } from "react-native-screens";
 enableScreens(false);
 
+import "./constants/theme";
+import "./i18n";
+
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
+import i18n, { LANGUAGE_STORAGE_KEY, applyRTL } from "./i18n";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AppNavigator from "./navigation/AppNavigator";
 import OnboardingScreen from "./screens/OnboardingScreen";
 import SplashScreen from "./screens/SplashScreen";
+import { ThemeProvider } from "./context/ThemeContext";
 
 const ONBOARDING_KEY = "@wastevision_onboarding_done";
 const SPLASH_DURATION_MS = 2200;
@@ -62,8 +67,15 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
-        const value = await AsyncStorage.getItem(ONBOARDING_KEY);
-        setHasSeenOnboarding(value === "true");
+        const [onboarding, lang] = await Promise.all([
+          AsyncStorage.getItem(ONBOARDING_KEY),
+          AsyncStorage.getItem(LANGUAGE_STORAGE_KEY),
+        ]);
+        setHasSeenOnboarding(onboarding === "true");
+        if (lang && ["fr", "en", "ar"].includes(lang)) {
+          i18n.changeLanguage(lang);
+          applyRTL(lang);
+        }
       } catch {
         setHasSeenOnboarding(true);
       }
@@ -97,7 +109,15 @@ export default function App() {
     );
   }
 
-  if (hasSeenOnboarding === null) return null;
+  if (hasSeenOnboarding === null) {
+    return (
+      <ErrorBoundary>
+        <View style={[styles.root, Platform.OS === "web" && styles.rootWeb, { justifyContent: "center", alignItems: "center", backgroundColor: "#F5F7F5" }]}>
+          <Text style={styles.errorText}>Chargement...</Text>
+        </View>
+      </ErrorBoundary>
+    );
+  }
 
   if (!hasSeenOnboarding) {
     return (
@@ -114,12 +134,14 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <View style={rootStyle}>
-        <SafeAreaProvider>
-          <StatusBar style="light" />
-          <AppNavigator />
-        </SafeAreaProvider>
-      </View>
+      <ThemeProvider>
+        <View style={rootStyle}>
+          <SafeAreaProvider>
+            <StatusBar style="light" />
+            <AppNavigator />
+          </SafeAreaProvider>
+        </View>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

@@ -1,10 +1,12 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Card, PrimaryButton } from "../components";
 import { colors, spacing, fontSize } from "../constants/theme";
 
 export default function ProfileScreen({ navigation }) {
-  const isGuest = true; // À remplacer par un contexte Auth quand login sera branché
+  const { t } = useTranslation();
+  const isGuest = true; // Replace with Auth context when login is wired
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -12,34 +14,34 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>👤</Text>
         </View>
-        <Text style={styles.name}>{isGuest ? "Invité" : "Utilisateur"}</Text>
+        <Text style={styles.name}>{isGuest ? t("profile.guest") : t("profile.user")}</Text>
         {!isGuest && <Text style={styles.email}>email@exemple.com</Text>}
       </View>
 
       <Card style={styles.card}>
         <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("Paramètres")}>
-          <Text style={styles.menuLabel}>Paramètres</Text>
+          <Text style={styles.menuLabel}>{t("profile.settings")}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.menuRow, styles.menuRowBorder]} onPress={() => navigation.navigate("Historique")}>
-          <Text style={styles.menuLabel}>Historique des scans</Text>
+          <Text style={styles.menuLabel}>{t("profile.historyScans")}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("Stats")}>
-          <Text style={styles.menuLabel}>Mon impact</Text>
+        <TouchableOpacity style={[styles.menuRow, styles.menuRowBorder]} onPress={() => navigation.navigate("Stats")}>
+          <Text style={styles.menuLabel}>{t("profile.myImpact")}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
       </Card>
 
       {isGuest ? (
         <PrimaryButton
-          title="Se connecter (bientôt)"
+          title={t("profile.loginSoon")}
           onPress={() => {}}
           style={styles.loginBtn}
         />
       ) : (
         <TouchableOpacity style={styles.logoutBtn}>
-          <Text style={styles.logoutText}>Déconnexion</Text>
+          <Text style={styles.logoutText}>{t("profile.logout")}</Text>
         </TouchableOpacity>
       )}
     </ScrollView>

@@ -1,6 +1,6 @@
 # WasteVision AI – Integration & Production Guide
 
-This document covers optional and production-oriented integrations: on-device detection (TensorFlow Lite), real recycling map data (Google Maps), and offline support.
+This document covers optional and production-oriented integrations: on-device detection (TensorFlow Lite) and offline support. **The Recycling Map feature is not included**; no map or geolocation is used in the app.
 
 ---
 
@@ -36,67 +36,32 @@ Currently, WasteVision uses the **backend `/predict` API** for classification. Y
 4. **Reuse labels**  
    Use the same category keys (`plastic`, `paper_cardboard`, `glass`, `metal`, `organic`, `non_recyclable`) and `getCategoryColor` / `getWasteTypeLabel` for the overlay.
 5. **Optional: still call backend**  
-   When the user taps “Use this result”, you can POST the image to the backend to save history and support corrections/retraining.
+   When the user taps "Use this result", you can POST the image to the backend to save history and support corrections/retraining.
 
-See [TensorFlow Lite for React Native](https://www.tensorflow.org/lite/guide) and your chosen bridge’s docs for build and deployment.
-
----
-
-## 2. Google Maps API & real recycling points
-
-`MapScreen.js` currently uses **mock recycling points** and **react-native-maps** with the device location. To show **real bins or recycling centers**:
-
-### Get a Google Maps API key
-
-1. Open [Google Cloud Console](https://console.cloud.google.com/).
-2. Create or select a project and enable:
-   - **Maps SDK for Android** (for Android)
-   - **Maps SDK for iOS** (for iOS)
-   - Optionally **Places API** or **Geocoding API** if you need search/addresses.
-3. Create an API key and restrict it by app (package name / bundle ID) and optionally by API.
-
-### Configure the key in the app
-
-- **Expo:** Use `app.config.js` or `app.json` and set:
-  - `android.config.googleMaps.apiKey`
-  - `ios.config.googleMaps.apiKey`
-- **React Native CLI:** In `android/app/src/main/AndroidManifest.xml` and in the iOS project (e.g. `AppDelegate` or `Info.plist`), set the key as per [react-native-maps setup](https://github.com/react-native-maps/react-native-maps/blob/master/docs/installation.md).
-
-### Replace mock data in `MapScreen.js`
-
-1. **Option A – Backend API**  
-   Add an endpoint, e.g. `GET /recycling-points?lat=...&lng=...&radius=...`, that returns real recycling locations (from your DB or an external source). In `MapScreen.js`, call this instead of `MOCK_RECYCLING_POINTS`.
-2. **Option B – Google Places**  
-   Use Places API (e.g. “recycling center” / “déchetterie” / “poubelle”) to search near the user’s location and map results to markers. Replace the mock array with this response.
-3. **Keep current UX**  
-   Continue using `expo-location` for the user position and Haversine (or API sorting) to show distance. Keep the list sorted by distance.
-
-After wiring the key and the data source, remove or replace `MOCK_RECYCLING_POINTS` in `frontend/screens/MapScreen.js`.
+See [TensorFlow Lite for React Native](https://www.tensorflow.org/lite/guide) and your chosen bridge's docs for build and deployment.
 
 ---
 
-## 3. Offline support
+## 2. Offline support
 
 | Feature | Current | Offline options |
 |--------|--------|------------------|
 | **Classification** | Needs backend | Add TFLite (see §1) so classification works offline. |
 | **History** | Loaded from API | Cache last N scans in AsyncStorage or SQLite; show cached list when offline; sync when back online. |
 | **Eco score / badges** | In AsyncStorage | Already local; no change. |
-| **Map** | Live data | Cache last fetched recycling points; show “Cached – update when online” when offline. |
 | **Corrections** | PATCH to backend | Queue corrections locally (e.g. AsyncStorage or SQLite) and send when online (e.g. with NetInfo). |
 
 ### Suggested order
 
 1. Use **NetInfo** (e.g. `@react-native-community/netinfo`) to detect offline.
-2. **History:** On load, try API; on failure, read from local cache and show a small “Offline” banner.
-3. **Corrections:** If offline, save correction to a “pending corrections” queue and retry PATCH when online.
-4. **Map:** If offline, show last cached list of points and a message that the map will refresh when online.
+2. **History:** On load, try API; on failure, read from local cache and show a small "Offline" banner.
+3. **Corrections:** If offline, save correction to a "pending corrections" queue and retry PATCH when online.
 
 This keeps the app usable without breaking existing architecture.
 
 ---
 
-## 4. Performance tips (live camera & on-device inference)
+## 3. Performance tips (live camera & on-device inference)
 
 Apply these to keep the live camera smooth and, if you add TFLite, to get the best on-device performance.
 
@@ -114,7 +79,7 @@ When using TensorFlow Lite on the device:
 
 This significantly reduces inference time and helps maintain a smooth framerate.
 
-### Don’t block the main / UI thread
+### Don't block the main / UI thread
 
 - **Backend (current):** Inference already runs on the server; the app just waits on the network request.
 - **React Native (live camera):** `LiveScanScreen` runs capture and `predict()` in **async** code (no synchronous inference on the JS thread). The interval only starts the next capture when the previous one has finished (or skips if still `analyzing`), so the UI stays responsive.
@@ -122,9 +87,8 @@ This significantly reduces inference time and helps maintain a smooth framerate.
 
 ---
 
-## 5. References
+## 4. References
 
 - **Dataset & retraining:** `backend/docs/DATASET_STRUCTURE.md`
 - **Backend predict:** `backend/app/api/predict.py`
-- **Map screen:** `frontend/screens/MapScreen.js`
 - **Live scan:** `frontend/screens/LiveScanScreen.js`

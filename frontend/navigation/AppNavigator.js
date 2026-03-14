@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { View, Text, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { colors, fontSize } from "../constants/theme";
-
 import HomeScreen from "../screens/HomeScreen";
 import CameraScreen from "../screens/CameraScreen";
 import ResultScreen from "../screens/ResultScreen";
@@ -12,20 +12,23 @@ import AssistantScreen from "../screens/AssistantScreen";
 import HistoryScreen from "../screens/HistoryScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import SettingsScreen from "../screens/SettingsScreen";
-import NotificationsScreen from "../screens/NotificationsScreen";
-import MapScreen from "../screens/MapScreen";
 import LiveScanScreen from "../screens/LiveScanScreen";
-
 const Tab = createBottomTabNavigator();
 
 /**
  * Scan tab: Camera (photo/gallery), Live detection, or Result.
- * Keeps existing architecture intact.
  */
-function ScanTab() {
+function ScanTab({ route, navigation }) {
   const [result, setResult] = useState(null);
   const [photoUri, setPhotoUri] = useState(null);
   const [liveMode, setLiveMode] = useState(false);
+
+  useEffect(() => {
+    if (route?.params?.openLive) {
+      setLiveMode(true);
+      navigation.setParams({ openLive: false });
+    }
+  }, [route?.params?.openLive, navigation]);
 
   if (result) {
     return (
@@ -66,10 +69,8 @@ function TabIcon({ label, focused }) {
     Stats: "📊",
     Coach: "💬",
     Historique: "📋",
-    Carte: "🗺️",
     Profil: "👤",
     Paramètres: "⚙️",
-    Notifications: "🔔",
   };
   return (
     <View style={styles.tabIcon}>
@@ -81,6 +82,7 @@ function TabIcon({ label, focused }) {
 }
 
 export default function AppNavigator() {
+  const { t } = useTranslation();
   return (
     <View style={styles.navWrapper}>
       <NavigationContainer>
@@ -91,6 +93,7 @@ export default function AppNavigator() {
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.textSecondary,
           tabBarLabelStyle: styles.tabLabel,
+          tabBarLabel: t("tabs." + route.name),
           tabBarIcon: ({ focused }) => <TabIcon label={route.name} focused={focused} />,
         })}
       >
@@ -99,9 +102,7 @@ export default function AppNavigator() {
         <Tab.Screen name="Stats" component={DashboardScreen} />
         <Tab.Screen name="Coach" component={AssistantScreen} />
         <Tab.Screen name="Historique" component={HistoryScreen} />
-        <Tab.Screen name="Carte" component={MapScreen} />
         <Tab.Screen name="Profil" component={ProfileScreen} />
-        <Tab.Screen name="Notifications" component={NotificationsScreen} options={{ tabBarLabel: "Notif" }} />
         <Tab.Screen name="Paramètres" component={SettingsScreen} />
       </Tab.Navigator>
       </NavigationContainer>

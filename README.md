@@ -35,8 +35,10 @@ You can run the app **in the browser** (web), **on your phone** (Expo Go or dev 
 | **Correction** | Report a wrong prediction and choose the correct category (human-in-the-loop) |
 | **History** | Browse past scans, search, filter by category, correct entries |
 | **Dashboard** | Stats and impact (scans, CO₂, goals) |
-| **Coach** | Eco tips and best practices |
+| **Coach** | Eco tips and best practices (text chat only) |
 | **Help** | FAQ, quick guide, support (feedback, bug report, app rating) |
+
+**No voice:** No speech-to-text, no text-to-speech, no audio prompts. All interaction is text and tap only. See [docs/VOICE.md](docs/VOICE.md).
 
 ---
 
@@ -48,6 +50,7 @@ You can run the app **in the browser** (web), **on your phone** (Expo Go or dev 
 | **Backend** | Python, FastAPI, Uvicorn, SQLite |
 | **AI** | TensorFlow/Keras, MobileNetV2 – 6 classes: plastic, paper/carton, glass, metal, organic, non-recyclable |
 | **Retraining** | User corrections stored as verified data; `retrain.py` for model updates |
+| **APIs** | **Free only:** OpenStreetMap, Nominatim, OpenRouteService (optional key), expo-notifications. No Google Maps or paid services – see [docs/FREE_APIS.md](docs/FREE_APIS.md). |
 
 ---
 
@@ -56,7 +59,7 @@ You can run the app **in the browser** (web), **on your phone** (Expo Go or dev 
 ### Prerequisites
 
 - **Node.js** (npm)
-- **Python 3.10+** (pip)
+- **Python 3.10, 3.11 ou 3.12** pour le backend (TensorFlow ne supporte pas Python 3.14). Sur Windows, si tu as plusieurs versions : `py -3.12 -m venv venv` dans le dossier `backend`.
 - For mobile: **Expo Go** on your phone (same Wi‑Fi as your machine)
 
 ### 1. Clone the repo
@@ -68,13 +71,19 @@ cd WasteVision-AI
 
 ### 2. Backend (API)
 
+Utilise **Python 3.10, 3.11 ou 3.12** (pas 3.14). Sur Windows avec le launcher `py` :
+
 ```bash
 cd backend
-python -m venv venv
+# Si tu as Python 3.14 par défaut, crée le venv avec 3.12 :
+py -3.12 -m venv venv
+# Sinon : python -m venv venv
+
 # Windows:
 .\venv\Scripts\activate
 # macOS/Linux:
 # source venv/bin/activate
+
 pip install -r requirements.txt
 python -m uvicorn main:app --host 0.0.0.0 --port 8001
 ```
@@ -94,6 +103,19 @@ npx expo start
 - **Sur le PC (navigateur)** : appuyer sur **`w`** pour ouvrir l’app dans le navigateur. Voir **[OUVRIR-SUR-PC.md](OUVRIR-SUR-PC.md)** pour les étapes détaillées.  
 - **Mobile (dev)** : scanner le QR code avec Expo Go (téléphone sur le même Wi‑Fi).  
 - **Mobile (vraie app)** : build natif (APK/IPA). Voir **[BUILD_NATIF.md](BUILD_NATIF.md)**.
+
+### Si "Network request failed" sur téléphone
+
+1. **Backend allumé** : dans un terminal, le backend doit tourner (`uvicorn ... --port 8001`).
+2. **Même Wi‑Fi** : le téléphone et le PC doivent être sur le même réseau.
+3. **Forcer l’IP du PC** : dans `frontend/app.json`, section `expo.extra`, mets l’IP de ton PC :
+   ```json
+   "extra": {
+     "apiBaseUrl": "http://192.168.11.110:8001"
+   }
+   ```
+   Remplace `192.168.11.110` par l’IP affichée par Expo au démarrage (ex: `exp://192.168.11.110:8081` → IP = `192.168.11.110`). Redémarre Expo (`npx expo start`) après modification.
+4. **Pare-feu** : autorise le port 8001 sur le PC (Windows Pare-feu).
 
 ---
 
@@ -143,8 +165,11 @@ Restart the backend to load the updated model.
 
 ## Documentation
 
+- **[FEATURES.md](FEATURES.md)** – Feature checklist: live camera, eco points, AI corrections, env stats, UI (no map)  
+- **[docs/VOICE.md](docs/VOICE.md)** – No voice/speech/TTS/STT; text and tap only  
+- **[docs/INTEGRATION.md](docs/INTEGRATION.md)** – TFLite, offline support, performance tips  
 - **[STACK_AND_FEATURES.md](STACK_AND_FEATURES.md)** – Programming languages (frontend/backend), functionalities, UI languages  
-- **[IMPROVEMENTS.md](IMPROVEMENTS.md)** – 5 improvements (eco score, badges, map, real-time detection, env stats)  
+- **[IMPROVEMENTS.md](IMPROVEMENTS.md)** – 5 improvements (eco score, badges, real-time detection, env stats; no map)  
 - **[PITCH.md](PITCH.md)** – 30-second pitch (startup / competition)  
 - **[TECHNICAL.md](TECHNICAL.md)** – AI, API, and architecture for developers  
 - **[ROADMAP.md](ROADMAP.md)** – Development phases and next steps  

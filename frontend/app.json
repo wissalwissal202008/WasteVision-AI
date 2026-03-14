@@ -1,6 +1,9 @@
 {
   "expo": {
     "name": "WasteVision AI",
+    "extra": {
+      "apiBaseUrl": ""
+    },
     "slug": "wastevision-ai",
     "version": "1.0.0",
     "orientation": "portrait",

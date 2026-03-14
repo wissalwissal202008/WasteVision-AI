@@ -13,7 +13,7 @@ import {
 import { Card, PrimaryButton, SecondaryButton } from "../components";
 import { colors, spacing, fontSize, borderRadius, getCategoryColor } from "../constants/theme";
 import { submitCorrection } from "../api/client";
-import { awardPointsForScan, awardPointsForCorrection } from "../services/ecoScore";
+import { awardPointsForScan, awardPointsForCorrection, ECO_POINTS_CORRECTION } from "../services/ecoScore";
 
 const CATEGORY_OPTIONS = [
   { key: "plastic", label: "Plastique" },

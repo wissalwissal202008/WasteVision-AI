@@ -19,6 +19,11 @@ export const ECO_POINTS_BY_CATEGORY = {
 };
 export const ECO_POINTS_CORRECTION = 5;
 
+/** Kg per scan for impact stats (plastic, glass, CO₂). */
+export const KG_PLASTIC_PER_SCAN = 0.02;
+export const KG_GLASS_PER_SCAN = 0.05;
+export const KG_CO2_PER_SCAN = 0.05;
+
 export async function getEcoScore() {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY_SCORE);
@@ -64,22 +69,20 @@ export async function awardPointsForCorrection() {
   return ECO_POINTS_CORRECTION;
 }
 
-/** Eco level by total score – motivating and fun */
+/** Eco level by total score: Beginner (0-100), Eco Hero (100-300), Waste Warrior (300+). */
 export function getEcoLevel(score) {
-  if (score >= 500) return { name: "Eco Master", emoji: "🏆" };
-  if (score >= 200) return { name: "Eco Hero", emoji: "🌍" };
-  if (score >= 50) return { name: "Waste Warrior", emoji: "♻️" };
-  if (score >= 10) return { name: "Beginner Recycler", emoji: "🌱" };
-  return { name: "Starter", emoji: "✨" };
+  if (score >= 300) return { name: "Waste Warrior", emoji: "♻️" };
+  if (score >= 100) return { name: "Eco Hero", emoji: "🌍" };
+  return { name: "Beginner", emoji: "🌱" };
 }
 
-/** Badges: Beginner Recycler, Eco Hero, Waste Warrior (and more) */
+/** Badges: Beginner, Eco Hero, Waste Warrior, AI Helper */
 export function getEcoBadges(scansCount, correctionsCount, totalScore) {
   return [
-    { id: "beginner", name: "Beginner Recycler", emoji: "🌱", unlocked: scansCount >= 1 },
+    { id: "beginner", name: "Beginner", emoji: "🌱", unlocked: totalScore >= 0 || scansCount >= 1 },
     { id: "eco10", name: "10 items recycled", emoji: "♻️", unlocked: scansCount >= 10 },
-    { id: "warrior", name: "Waste Warrior", emoji: "⚔️", unlocked: scansCount >= 25 || totalScore >= 100 },
+    { id: "hero", name: "Eco Hero", emoji: "🌍", unlocked: totalScore >= 100 },
+    { id: "warrior", name: "Waste Warrior", emoji: "⚔️", unlocked: totalScore >= 300 },
     { id: "corrector", name: "AI Helper", emoji: "✏️", unlocked: correctionsCount >= 1 },
-    { id: "hero", name: "Eco Hero", emoji: "🌍", unlocked: scansCount >= 50 || totalScore >= 200 },
   ];
 }

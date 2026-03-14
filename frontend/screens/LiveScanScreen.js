@@ -16,7 +16,7 @@ import {
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { colors, spacing, fontSize, borderRadius, getCategoryColor } from "../constants/theme";
 import { getWasteTypeLabel } from "../constants/wasteTypeColors";
-import { predict } from "../api/client";
+import { predict } from "../services/detection";
 
 const LIVE_INTERVAL_MS = 2500;
 
@@ -38,6 +38,7 @@ export default function LiveScanScreen({ onResult, onBack }) {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.7,
         base64: false,
+        mute: true,
       });
       if (!photo?.uri) {
         setAnalyzing(false);
@@ -129,6 +130,9 @@ export default function LiveScanScreen({ onResult, onBack }) {
                   ♻️ {getWasteTypeLabel(cat)} · {liveResult.recommended_bin}
                 </Text>
               </View>
+              <Text style={styles.labelImpact} numberOfLines={1}>
+                🌍 ~0.05 kg CO₂ saved if recycled
+              </Text>
               <TouchableOpacity style={styles.validateBtn} onPress={handleValidate}>
                 <Text style={styles.validateBtnText}>Use this result</Text>
               </TouchableOpacity>
@@ -204,6 +208,12 @@ const styles = StyleSheet.create({
   labelCategoryText: {
     fontSize: fontSize.caption,
     fontWeight: "600",
+  },
+  labelImpact: {
+    fontSize: fontSize.caption,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    textAlign: "center",
   },
   validateBtn: {
     marginTop: spacing.md,

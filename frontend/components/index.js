@@ -4,3 +4,4 @@ export { SecondaryButton } from "./SecondaryButton";
 export { EmptyState } from "./EmptyState";
 export { ErrorState, NoInternetState, ServerErrorState } from "./ErrorState";
 export { AnimatedProgressBar } from "./AnimatedProgressBar";
+export { LanguageSwitcher } from "./LanguageSwitcher";

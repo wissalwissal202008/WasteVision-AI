@@ -12,7 +12,7 @@ import {
 import { Card, PrimaryButton } from "../components";
 import { colors, spacing, fontSize } from "../constants/theme";
 
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+if (Platform.OS === "android" && UIManager?.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 

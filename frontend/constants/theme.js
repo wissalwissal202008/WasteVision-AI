@@ -1,55 +1,37 @@
 /**
  * WasteVision AI – Design System (Eco-Friendly Mobile App design)
- * Light green background, emerald primary, category colors for recycling.
+ * Re-exports colors from colors.js (no deps) so bundler always has it; adds getThemeColors, getCategoryColor, spacing, etc.
  */
+import { colors } from "./colors";
 
-export const colors = {
-  // Primary: emerald (eco design from Eco-Friendly zip)
-  primary: "#10b981",
-  primaryLight: "#34d399",
-  primaryDark: "#059669",
-  primaryForeground: "#ffffff",
-  // Surfaces (theme.css)
-  background: "#f0fdf4",
-  surface: "#ffffff",
-  card: "#ffffff",
-  // Text
-  text: "#030213",
-  textSecondary: "#717182",
-  textOnPrimary: "#ffffff",
-  // Accent: emerald light (eco)
-  accent: "#d1fae5",
-  accentForeground: "#065f46",
-  accentLight: "#a7f3d0",
-  // Muted
-  muted: "#ececf0",
-  mutedForeground: "#717182",
-  // Semantic
-  success: "#10b981",
-  error: "#d4183d",
-  destructive: "#d4183d",
-  border: "rgba(0,0,0,0.1)",
-  inputBackground: "#f3f3f5",
-  // Chart / stats
-  chart1: "#10b981",
-  chart2: "#3b82f6",
-  chart3: "#eab308",
-  chart4: "#f97316",
-  chart5: "#84cc16",
-  // Category colors (recycling bins) – from eco design categoryColors
-  category: {
-    plastic: { bg: "#eab308", light: "#fef9c3", text: "#713f12" },
-    paper_cardboard: { bg: "#f97316", light: "#ffedd5", text: "#7c2d12" },
-    glass: { bg: "#3b82f6", light: "#dbeafe", text: "#1e3a8a" },
-    metal: { bg: "#64748b", light: "#f1f5f9", text: "#1e293b" },
-    organic: { bg: "#84cc16", light: "#ecfccb", text: "#3f6212" },
-    non_recyclable: { bg: "#6b7280", light: "#f3f4f6", text: "#1f2937" },
-  },
+export { colors };
+
+const lightColors = colors;
+
+const darkColors = {
+  ...lightColors,
+  background: "#0f1419",
+  surface: "#1a2332",
+  card: "#1e2a3a",
+  text: "#e6edf3",
+  textSecondary: "#8b949e",
+  accent: "#0d3d2e",
+  accentForeground: "#34d399",
+  accentLight: "#064e3b",
+  muted: "#21262d",
+  mutedForeground: "#8b949e",
+  border: "rgba(255,255,255,0.12)",
+  inputBackground: "#21262d",
 };
+
+/** Resolve theme colors by isDark. */
+export function getThemeColors(isDark) {
+  return isDark ? darkColors : lightColors;
+}
 
 /** Get category color for waste_category key */
 export function getCategoryColor(categoryKey) {
-  return colors.category[categoryKey] || colors.category.non_recyclable;
+  return lightColors.category[categoryKey] || lightColors.category.non_recyclable;
 }
 
 export const spacing = {

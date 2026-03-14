@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 import { Card, PrimaryButton } from "../components";
 import { colors, spacing, fontSize, borderRadius } from "../constants/theme";
 import { getHistory } from "../api/client";
@@ -8,6 +9,7 @@ import { getHistory } from "../api/client";
 const KG_CO2_PER_SCAN = 0.05;
 
 export default function HomeScreen({ navigation }) {
+  const { t } = useTranslation();
   const [totalScans, setTotalScans] = useState(null);
   const [co2Saved, setCo2Saved] = useState(null);
 
@@ -39,12 +41,10 @@ export default function HomeScreen({ navigation }) {
       <View style={styles.heroCard}>
         <View style={styles.heroContent}>
           <Text style={styles.heroIcon}>✨</Text>
-          <Text style={styles.heroTitle}>Scanner un déchet</Text>
-          <Text style={styles.heroSub}>
-            Prenez une photo de votre déchet pour découvrir comment le recycler correctement. L'IA vous guidera !
-          </Text>
+          <Text style={styles.heroTitle}>{t("home.title")}</Text>
+          <Text style={styles.heroSub}>{t("home.subtitle")}</Text>
           <PrimaryButton
-            title="Prendre une photo"
+            title={t("home.cta")}
             onPress={() => navigation.navigate("Scan")}
             style={styles.mainButton}
           />
@@ -54,30 +54,30 @@ export default function HomeScreen({ navigation }) {
       {/* Comment ça marche – eco design */}
       <View style={styles.infoCard}>
         <Text style={styles.infoIcon}>ℹ️</Text>
-        <Text style={styles.infoTitle}>Comment ça marche ?</Text>
+        <Text style={styles.infoTitle}>{t("home.howItWorks")}</Text>
         <View style={styles.infoList}>
-          <Text style={styles.infoStep}><Text style={styles.infoStepNum}>1.</Text> Prenez une photo nette de votre déchet</Text>
-          <Text style={styles.infoStep}><Text style={styles.infoStepNum}>2.</Text> L'IA identifie automatiquement l'objet</Text>
-          <Text style={styles.infoStep}><Text style={styles.infoStepNum}>3.</Text> Suivez les conseils de recyclage adaptés</Text>
+          <Text style={styles.infoStep}><Text style={styles.infoStepNum}>1.</Text> {t("home.step1")}</Text>
+          <Text style={styles.infoStep}><Text style={styles.infoStepNum}>2.</Text> {t("home.step2")}</Text>
+          <Text style={styles.infoStep}><Text style={styles.infoStepNum}>3.</Text> {t("home.step3")}</Text>
         </View>
       </View>
 
       {/* Impact – compact */}
       <Card style={styles.impactCard}>
-        <Text style={styles.impactLabel}>Votre impact</Text>
+        <Text style={styles.impactLabel}>{t("home.impactLabel")}</Text>
         <View style={styles.impactRow}>
           <View style={styles.impactItem}>
             <Text style={styles.impactValue}>{showImpact ? totalScans : "—"}</Text>
-            <Text style={styles.impactUnit}>objets triés</Text>
+            <Text style={styles.impactUnit}>{t("home.objectsSorted")}</Text>
           </View>
           <View style={styles.impactDivider} />
           <View style={styles.impactItem}>
             <Text style={styles.impactValue}>{showImpact ? co2Saved + " kg" : "—"}</Text>
-            <Text style={styles.impactUnit}>CO₂ évité</Text>
+            <Text style={styles.impactUnit}>{t("home.co2Avoided")}</Text>
           </View>
         </View>
         <Text style={styles.impactHint}>
-          {showImpact && totalScans > 0 ? "Continuez comme ça !" : "Scannez pour commencer"}
+          {showImpact && totalScans > 0 ? t("home.impactHintContinue") : t("home.impactHintStart")}
         </Text>
       </Card>
     </View>

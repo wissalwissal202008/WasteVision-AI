@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { colors, spacing, fontSize, borderRadius } from "../constants/theme";
 import { PrimaryButton, SecondaryButton, Card } from "../components";
-import { predict } from "../api/client";
+import { predict } from "../services/detection";
 
 export default function CameraScreen({ navigation, onResult, onSwitchToLive }) {
   const [loading, setLoading] = useState(false);

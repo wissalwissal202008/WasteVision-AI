@@ -12,34 +12,39 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { Card, EmptyState, ErrorState, NoInternetState } from "../components";
 import { colors, spacing, fontSize, borderRadius } from "../constants/theme";
+import { useTheme } from "../context/ThemeContext";
+import { useTranslation } from "react-i18next";
 import { getHistory, getUploadUrl } from "../api/client";
+import { ECO_POINTS_BY_CATEGORY, ECO_POINTS_CORRECTION } from "../services/ecoScore";
 
-const CATEGORY_LABELS = {
-  plastic: "Plastique",
-  paper_cardboard: "Papier / Carton",
-  glass: "Verre",
-  metal: "M?tal",
-  organic: "Organique",
-  non_recyclable: "Non recyclable",
-};
+const CATEGORY_KEYS_LIST = ["plastic", "paper_cardboard", "glass", "metal", "organic", "non_recyclable"];
 
-function formatDate(iso) {
+function formatDate(iso, locale = "fr-FR") {
   if (!iso) return "";
   const d = new Date(iso);
-  return d.toLocaleDateString("fr-FR", {
+  return d.toLocaleDateString(locale, {
     day: "numeric",
     month: "short",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
 }
 
-function HistoryItem({ item }) {
+function getPointsForItem(item) {
+  const cat = item.corrected_category || item.predicted_category;
+  const base = ECO_POINTS_BY_CATEGORY[cat] ?? 5;
+  const correctionBonus = item.corrected_category ? ECO_POINTS_CORRECTION : 0;
+  return base + correctionBonus;
+}
+
+function HistoryItem({ item, locale, pointsLabel }) {
   const [imgError, setImgError] = useState(false);
-  const label = CATEGORY_LABELS[item.predicted_category] || item.predicted_category;
-  const productLabel = item.product_type || item.object_name || label;
+  const productLabel = item.product_type || item.object_name || item.predicted_category || "";
   const photoUrl = item.image_name ? getUploadUrl(item.image_name) : null;
   const showThumb = photoUrl && !imgError;
+  const points = getPointsForItem(item);
+  const dateStr = formatDate(item.created_at, locale === "ar" ? "ar-EG" : locale === "en" ? "en-GB" : "fr-FR");
   return (
     <Card style={styles.itemCard}>
       <View style={styles.itemRow}>
@@ -52,14 +57,13 @@ function HistoryItem({ item }) {
           />
         ) : (
           <View style={[styles.itemThumb, styles.itemThumbPlaceholder]}>
-            <Text style={styles.itemThumbPlaceholderText}>??</Text>
+            <Text style={styles.itemThumbPlaceholderText}>♻️</Text>
           </View>
         )}
         <View style={styles.itemContent}>
-          <Text style={styles.itemScanned}>Produit : {productLabel}</Text>
-          <Text style={styles.itemCategory}>{label}</Text>
-          <Text style={styles.itemBin}>{item.recommended_bin}</Text>
-          <Text style={styles.itemDate}>{formatDate(item.created_at)}</Text>
+          <Text style={styles.itemScanned}>{productLabel}</Text>
+          <Text style={styles.itemPoints}>{pointsLabel.replace("{{points}}", points)}</Text>
+          <Text style={styles.itemDate}>{dateStr}</Text>
         </View>
       </View>
     </Card>
@@ -67,11 +71,22 @@ function HistoryItem({ item }) {
 }
 
 export default function HistoryScreen({ navigation }) {
+  const { t, i18n } = useTranslation();
+  const { colors: themeColors } = useTheme();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const locale = i18n.language || "fr";
+  const CATEGORY_LABELS = {
+    plastic: t("history.categories.plastic"),
+    paper_cardboard: t("history.categories.paper_cardboard"),
+    glass: t("history.categories.glass"),
+    metal: t("history.categories.metal"),
+    organic: t("history.categories.organic"),
+    non_recyclable: t("history.categories.non_recyclable"),
+  };
 
   const load = useCallback(async () => {
     setError(null);
@@ -89,7 +104,7 @@ export default function HistoryScreen({ navigation }) {
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  const CATEGORY_KEYS = ["all", ...Object.keys(CATEGORY_LABELS)];
+  const CATEGORY_KEYS = ["all", ...CATEGORY_KEYS_LIST];
   const filteredItems = useMemo(() => {
     let list = items;
     if (filterCategory !== "all") {
@@ -109,19 +124,19 @@ export default function HistoryScreen({ navigation }) {
   const isNetworkError = error && (/\b(network|fetch|connexion)\b/i.test(error));
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Historique</Text>
-        <Text style={styles.subtitle}>Vos derniers scans</Text>
+        <Text style={[styles.title, { color: themeColors.text }]}>{t("history.title")}</Text>
+        <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>{t("history.subtitle")}</Text>
       </View>
 
       {!error && items.length > 0 && (
         <>
-          <TextInput style={styles.search} placeholder="Rechercher (produit, bac?)" placeholderTextColor={colors.textSecondary} value={searchQuery} onChangeText={setSearchQuery} />
+          <TextInput style={[styles.search, { backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.border }]} placeholder={t("history.searchPlaceholder")} placeholderTextColor={themeColors.textSecondary} value={searchQuery} onChangeText={setSearchQuery} />
           <View style={styles.filterRow}>
             {CATEGORY_KEYS.map((key) => (
               <TouchableOpacity key={key} style={[styles.filterChip, filterCategory === key && styles.filterChipActive]} onPress={() => setFilterCategory(key)}>
-                <Text style={[styles.filterChipText, filterCategory === key && styles.filterChipTextActive]}>{key === "all" ? "Tous" : CATEGORY_LABELS[key] || key}</Text>
+                <Text style={[styles.filterChipText, filterCategory === key && styles.filterChipTextActive]}>{key === "all" ? t("history.all") : CATEGORY_LABELS[key] || key}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -129,19 +144,19 @@ export default function HistoryScreen({ navigation }) {
       )}
       {error && (
         <View style={styles.stateWrap}>
-          {isNetworkError ? <NoInternetState onRetry={load} /> : <ErrorState title="Erreur" message={error} onRetry={load} />}
+          {isNetworkError ? <NoInternetState onRetry={load} /> : <ErrorState title={t("common.error")} message={error} onRetry={load} />}
         </View>
       )}
 
       {loading && items.length === 0 ? (
-        <Text style={styles.empty}>Chargement?</Text>
+        <Text style={styles.empty}>{t("common.loading")}</Text>
       ) : items.length === 0 ? (
         <View style={styles.stateWrap}>
           <EmptyState
-            icon="??"
-            title="Aucun scan"
-            message="Scannez un d?chet pour commencer. Vos scans s'afficheront ici."
-            actionLabel="Faire un scan"
+            icon="📋"
+            title={t("history.emptyTitle")}
+            message={t("history.emptyMessage")}
+            actionLabel={t("history.scanAction")}
             onAction={() => navigation?.navigate("Scan")}
           />
         </View>
@@ -149,15 +164,15 @@ export default function HistoryScreen({ navigation }) {
         <FlatList
           data={filteredItems}
           keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => <HistoryItem item={item} />}
+          renderItem={({ item }) => <HistoryItem item={item} locale={locale} pointsLabel={t("history.pointsFormat")} />}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
             <View style={styles.stateWrap}>
               <EmptyState
-                icon="??"
-                title="Aucun r?sultat"
-                message="Aucun scan ne correspond ? la recherche ou au filtre."
-                actionLabel="R?initialiser"
+                icon="🔍"
+                title={t("history.noResultsTitle")}
+                message={t("history.noResultsMessage")}
+                actionLabel={t("history.resetAction")}
                 onAction={() => {
                   setSearchQuery("");
                   setFilterCategory("all");
@@ -165,7 +180,7 @@ export default function HistoryScreen({ navigation }) {
               />
             </View>
           }
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} colors={[colors.primary]} />}
+          refreshControl={<RefreshControl refreshing={loading} onRefresh={load} colors={[themeColors.primary]} />}
         />
       )}
     </View>
@@ -240,13 +255,9 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: spacing.xs,
   },
-  itemCategory: {
+  itemPoints: {
     fontSize: fontSize.small,
     fontWeight: "600",
-    color: colors.textSecondary,
-  },
-  itemBin: {
-    fontSize: fontSize.small,
     color: colors.primary,
     marginTop: spacing.xs,
   },

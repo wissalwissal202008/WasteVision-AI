@@ -1,28 +1,40 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 import { Card, AnimatedProgressBar } from "../components";
 import { colors, spacing, fontSize, borderRadius } from "../constants/theme";
+import { useTheme } from "../context/ThemeContext";
 import { getHistory } from "../api/client";
 import {
   getEcoScore,
   getCorrectionsCount,
   getEcoLevel,
   getEcoBadges,
+  KG_CO2_PER_SCAN,
+  KG_PLASTIC_PER_SCAN,
+  KG_GLASS_PER_SCAN,
 } from "../services/ecoScore";
-
 const WEEKLY_GOAL = 10;
-const KG_CO2_PER_SCAN = 0.05;
-const KG_PLASTIC_PER_SCAN = 0.02;
-const KG_GLASS_PER_SCAN = 0.05;
+
+const LEVEL_ORDER = ["Beginner", "Eco Hero", "Waste Warrior"];
 
 export default function DashboardScreen({ navigation }) {
+  const { t } = useTranslation();
+  const { colors: themeColors } = useTheme();
   const [scansCount, setScansCount] = useState(0);
   const [weeklyCount, setWeeklyCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [ecoScore, setEcoScore] = useState(0);
   const [correctionsCount, setCorrectionsCount] = useState(0);
   const [categoryCounts, setCategoryCounts] = useState({});
+  const previousLevelRef = useRef(null);
+
+  useEffect(() => {
+    if (loading || ecoScore === 0) return;
+    const level = getEcoLevel(ecoScore);
+    previousLevelRef.current = level.name;
+  }, [ecoScore, loading]);
 
   useFocusEffect(
     useCallback(() => {
@@ -81,26 +93,26 @@ export default function DashboardScreen({ navigation }) {
 
   if (loading && scansCount === 0 && weeklyCount === 0) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Chargement…</Text>
+      <View style={[styles.centered, { backgroundColor: themeColors.background }]}>
+        <ActivityIndicator size="large" color={themeColors.primary} />
+        <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t("common.loading")}</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Tableau de bord</Text>
-      <Text style={styles.subtitle}>Suivez votre impact écologique</Text>
+    <ScrollView style={[styles.scroll, { backgroundColor: themeColors.background }]} contentContainerStyle={styles.content}>
+      <Text style={[styles.title, { color: themeColors.text }]}>{t("dashboard.title")}</Text>
+      <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>{t("dashboard.subtitle")}</Text>
 
       {/* Score écologique + niveau */}
       <View style={styles.scoreCard}>
         <View style={styles.scoreRow}>
           <Text style={styles.scoreEmoji}>{level.emoji}</Text>
           <View style={styles.scoreContent}>
-            <Text style={styles.scoreValue}>{ecoScore} pts</Text>
-            <Text style={styles.scoreLabel}>Score écologique</Text>
-            <Text style={styles.levelName}>{level.name}</Text>
+            <Text style={[styles.scoreValue, { color: themeColors.text }]}>{ecoScore} pts</Text>
+            <Text style={[styles.scoreLabel, { color: themeColors.textSecondary }]}>{t("dashboard.ecoScore")}</Text>
+            <Text style={[styles.levelName, { color: themeColors.primary }]}>{level.name}</Text>
           </View>
         </View>
       </View>
@@ -110,59 +122,59 @@ export default function DashboardScreen({ navigation }) {
         <View style={[styles.statCardEco, styles.statCardEmerald]}>
           <Text style={styles.statCardEcoEmoji}>♻️</Text>
           <Text style={styles.statCardEcoValue}>{scansCount}</Text>
-          <Text style={styles.statCardEcoLabel}>Déchets triés</Text>
+          <Text style={styles.statCardEcoLabel}>{t("dashboard.wasteSorted")}</Text>
         </View>
         <View style={[styles.statCardEco, styles.statCardBlue]}>
           <Text style={styles.statCardEcoEmoji}>💧</Text>
           <Text style={styles.statCardEcoValue}>{co2Saved} kg</Text>
-          <Text style={styles.statCardEcoLabel}>CO₂ évité</Text>
+          <Text style={styles.statCardEcoLabel}>{t("home.co2Avoided")}</Text>
         </View>
         <View style={[styles.statCardEco, styles.statCardLime]}>
           <Text style={styles.statCardEcoEmoji}>🌱</Text>
           <Text style={styles.statCardEcoValue}>{weeklyCount}</Text>
-          <Text style={styles.statCardEcoLabel}>Cette semaine</Text>
+          <Text style={styles.statCardEcoLabel}>{t("dashboard.thisWeek")}</Text>
         </View>
       </View>
 
       <Card style={styles.goalCard}>
-        <Text style={styles.goalLabel}>Weekly goal</Text>
+        <Text style={styles.goalLabel}>{t("dashboard.weeklyGoal")}</Text>
         <Text style={styles.goalText}>
-          {weeklyCount} / {WEEKLY_GOAL} scans
+          {weeklyCount} / {WEEKLY_GOAL} {t("dashboard.scans")}
         </Text>
         <AnimatedProgressBar progress={progress} height={10} style={styles.goalProgressBar} />
-        <Text style={styles.goalHint}>Keep scanning to reach your goal</Text>
+        <Text style={styles.goalHint}>{t("dashboard.goalHint")}</Text>
       </Card>
 
       {/* Global environmental impact with progress indicators */}
       <Card style={styles.envStatsCard}>
-        <Text style={styles.envStatsTitle}>Environmental impact</Text>
+        <Text style={styles.envStatsTitle}>{t("dashboard.impact")}</Text>
         <View style={styles.envStatsGrid}>
           <View style={styles.envStatsItem}>
             <Text style={styles.envStatsValue}>{scansCount}</Text>
-            <Text style={styles.envStatsLabel}>Objects recycled</Text>
-            <AnimatedProgressBar progress={Math.min(scansCount / 50, 1)} height={6} fillColor={colors.primary} style={styles.envStatBar} />
+            <Text style={styles.envStatsLabel}>{t("dashboard.objectsRecycled")}</Text>
+            <AnimatedProgressBar progress={Math.min(scansCount / 50, 1)} height={6} fillColor={themeColors.primary} style={styles.envStatBar} />
           </View>
           <View style={styles.envStatsItem}>
             <Text style={styles.envStatsValue}>{kgPlasticAvoided} kg</Text>
-            <Text style={styles.envStatsLabel}>Plastic saved</Text>
+            <Text style={styles.envStatsLabel}>{t("dashboard.plasticSaved")}</Text>
             <AnimatedProgressBar progress={Math.min(kgPlasticAvoided / 2, 1)} height={6} fillColor="#eab308" style={styles.envStatBar} />
           </View>
           <View style={styles.envStatsItem}>
             <Text style={styles.envStatsValue}>{kgGlassRecycled} kg</Text>
-            <Text style={styles.envStatsLabel}>Glass recycled</Text>
+            <Text style={styles.envStatsLabel}>{t("dashboard.glassRecycled")}</Text>
             <AnimatedProgressBar progress={Math.min(kgGlassRecycled / 2, 1)} height={6} fillColor="#3b82f6" style={styles.envStatBar} />
           </View>
           <View style={styles.envStatsItem}>
             <Text style={styles.envStatsValue}>{co2Saved} kg</Text>
-            <Text style={styles.envStatsLabel}>CO₂ saved</Text>
-            <AnimatedProgressBar progress={Math.min(co2Saved / 1, 1)} height={6} fillColor={colors.primary} style={styles.envStatBar} />
+            <Text style={styles.envStatsLabel}>{t("dashboard.co2Saved")}</Text>
+            <AnimatedProgressBar progress={Math.min(co2Saved / 1, 1)} height={6} fillColor={themeColors.primary} style={styles.envStatBar} />
           </View>
         </View>
       </Card>
 
       {/* Badges */}
       <View style={styles.badgesSection}>
-        <Text style={styles.badgesTitle}>🌟 Badges</Text>
+        <Text style={styles.badgesTitle}>🌟 {t("dashboard.badges")}</Text>
         <View style={styles.badgesRow}>
           {badges.map((b) => (
             <View
@@ -179,24 +191,22 @@ export default function DashboardScreen({ navigation }) {
       {/* Eco design: impact block */}
       <View style={styles.impactBlock}>
         <Text style={styles.impactBlockEmoji}>🌍</Text>
-        <Text style={styles.impactBlockTitle}>Votre impact écologique</Text>
+        <Text style={styles.impactBlockTitle}>{t("dashboard.impactTitle")}</Text>
         <View style={styles.impactBlockRow}>
           <View style={styles.impactBlockItem}>
             <Text style={styles.impactBlockValue}>{co2Saved} kg</Text>
-            <Text style={styles.impactBlockLabel}>CO₂ économisé</Text>
+            <Text style={styles.impactBlockLabel}>{t("dashboard.co2Saved")}</Text>
           </View>
           <View style={styles.impactBlockItem}>
             <Text style={styles.impactBlockValue}>{scansCount}</Text>
-            <Text style={styles.impactBlockLabel}>objets triés</Text>
+            <Text style={styles.impactBlockLabel}>{t("home.objectsSorted")}</Text>
           </View>
         </View>
       </View>
 
       <Card style={styles.tipCard}>
-        <Text style={styles.tipTitle}>Le saviez-vous ?</Text>
-        <Text style={styles.tipBody}>
-          Bien trier un emballage en plastique permet de le recycler et de réduire la demande en pétrole.
-        </Text>
+        <Text style={styles.tipTitle}>{t("dashboard.tipTitle")}</Text>
+        <Text style={styles.tipBody}>{t("dashboard.tipBody")}</Text>
       </Card>
     </ScrollView>
   );

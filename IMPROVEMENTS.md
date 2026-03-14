@@ -34,21 +34,7 @@ Ce document décrit les **5 améliorations** qui transforment l’app en assista
 
 ---
 
-## 3️⃣ Carte des points de recyclage ✅
-
-**Idée :** Une carte affiche les points de recyclage proches (localisation + distance).
-
-| Élément | Détail |
-|--------|--------|
-| **Statut** | ✅ Implémenté |
-| **Où** | Onglet **Carte** (`MapScreen.js`) : expo-location + react-native-maps. Affiche la position utilisateur et des points de recyclage (mock par défaut), liste triée par distance. |
-| **Pour production** | Remplacer les points mock par Google Maps API / Places ou open data des communes. |
-
-**Résultat :** Outil utile au quotidien (où déposer ses déchets).
-
----
-
-## 4️⃣ Apprentissage de l’IA grâce aux utilisateurs ✅
+## 3️⃣ Apprentissage de l’IA grâce aux utilisateurs ✅
 
 **Idée :** Quand un utilisateur corrige l’IA, l’image et la correction sont sauvegardées et servent à réentraîner le modèle (dataset collaboratif).
 
@@ -62,7 +48,7 @@ Ce document décrit les **5 améliorations** qui transforment l’app en assista
 
 ---
 
-## 5️⃣ Statistiques environnementales ✅
+## 4️⃣ Statistiques environnementales ✅
 
 **Idée :** Une section « Impact écologique global » avec objets recyclés, kg plastique évités, kg CO₂ économisé.
 
@@ -81,8 +67,9 @@ Ce document décrit les **5 améliorations** qui transforment l’app en assista
 |---|--------------|--------|
 | 1 | Détection en temps réel (caméra) | ✅ Mode Live (expo-camera + backend) |
 | 2 | Score écologique + badges (Beginner Recycler, Eco Hero, Waste Warrior) | ✅ Fait |
-| 3 | Carte des points de recyclage (localisation + distance) | ✅ Fait (expo-location + react-native-maps) |
-| 4 | Apprentissage IA (corrections → réentraînement) | ✅ Déjà en place ; voir `backend/docs/DATASET_STRUCTURE.md` |
-| 5 | Statistiques environnementales globales | ✅ Fait (dashboard) |
+| 3 | Apprentissage IA (corrections → réentraînement) | ✅ Déjà en place ; voir `backend/docs/DATASET_STRUCTURE.md` |
+| 4 | Statistiques environnementales globales | ✅ Fait (dashboard) |
+
+**Note :** La carte des points de recyclage n’est pas incluse dans l’app. Aucun écran carte ni géolocalisation.
 
 En combinant tout cela, WasteVision AI vise à être un **assistant écologique intelligent** avec vision par ordinateur, gamification et impact environnemental mesurable — adapté aux hackathons IA, concours étudiants et incubateurs.
