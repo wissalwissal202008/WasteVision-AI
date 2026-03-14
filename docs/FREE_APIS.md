@@ -1,10 +1,9 @@
 # WasteVision AI – Free APIs Only
 
-**This app uses only free or open-source APIs.** No Google Maps, no paid keys, no paid tiers required for core features.
+**This app uses only free or open-source APIs.** No Google Maps, no paid keys, no paid tiers required. The project is **fully runnable locally** with no required API keys; see [CONSTRAINTS.md](../CONSTRAINTS.md).
 
-- **Recycling Map removed:** WasteVision AI does **not** include any map or geolocation feature. Do not add map screens, location-based UI, or recycling-point maps. The APIs listed below (e.g. maps, geocoding) are for reference only if you build a different project; they are not used in this app.
 - **Policy:** See [APIS_POLICY.md](APIS_POLICY.md). If a paid API is suggested anywhere, replace it with a free equivalent from this document.
-- All services below are **free** (within stated limits). Use only when needed; map/location is not used in WasteVision.
+- All services below are **free** (within stated limits). Core features (scan, classify, history) need **no API keys**; optional features (map, routing, remote push) use only the listed free options.
 
 ---
 
@@ -63,4 +62,4 @@ Local notifications use **expo-notifications** (no external service). For *remot
 - **Push:** expo-notifications (local) + FCM or OneSignal (remote, free tier).
 - **CO₂:** OpenClimate API for more accurate impact data when configured.
 
-**Summary:** Use only the APIs listed above. Do not integrate Google Maps, paid geocoding, or other paid services. For maps: OpenStreetMap + Nominatim + Overpass (+ optional OpenRouteService free key). Voice/speech/TTS/STT are not used in this app. For push: expo-notifications (local); FCM/OneSignal only on their free tier. If a paid API is suggested, replace it with a free equivalent from this document; see [APIS_POLICY.md](APIS_POLICY.md).
+**Summary:** Use only the APIs listed above. Do not integrate Google Maps, paid geocoding, or other paid services. The project is **fully runnable locally**: backend + frontend + AI run on your machine; **no API key is required** for core flow (scan → classify → result → history). Optional: OpenStreetMap/Nominatim/Overpass (no key), OpenRouteService (free key), FCM/OneSignal (free tier), Kaggle (free account for dataset download). See [CONSTRAINTS.md](../CONSTRAINTS.md) and [APIS_POLICY.md](APIS_POLICY.md).

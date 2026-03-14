@@ -161,6 +161,13 @@ export default function ResultScreen({ route, navigation, result: resultProp, ph
         <Text style={styles.binValue}>{result.recommended_bin}</Text>
       </Card>
 
+      {result.recycling_instructions ? (
+        <Card style={styles.card}>
+          <Text style={styles.cardLabel}>Instructions de recyclage</Text>
+          <Text style={styles.cardText}>{result.recycling_instructions}</Text>
+        </Card>
+      ) : null}
+
       <Card style={styles.card}>
         <Text style={styles.cardLabel}>Impact environnemental</Text>
         <Text style={styles.cardText}>{result.environmental_impact}</Text>

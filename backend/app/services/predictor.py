@@ -1,19 +1,15 @@
-import io
 import uuid
-from PIL import Image
 from app.services import responses
 from ml.model_loader import predict_proba
-from ml.preprocess import preprocess_image
+from ml.preprocess import preprocess_from_bytes
 import config
 
 
 def predict_from_bytes(image_bytes: bytes):
     try:
-        image = Image.open(io.BytesIO(image_bytes))
-        image.load()
+        batch = preprocess_from_bytes(image_bytes)
     except Exception as e:
         raise ValueError(f"Image not valid or not clear: {e!s}") from e
-    batch = preprocess_image(image)
     proba = predict_proba(batch)
     proba = proba[0]
     class_index = int(proba.argmax())

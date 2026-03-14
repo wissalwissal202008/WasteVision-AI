@@ -9,10 +9,11 @@ class ResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final objectName = result['object_name'] as String? ?? 'Objet';
-    final material = result['material'] as String? ?? result['category'] ?? '';
-    final category = result['category'] as String? ?? material;
+    final wasteType = result['waste_type'] as String? ?? result['waste_category'] as String? ?? result['category'] as String? ?? '';
+    final material = result['material'] as String? ?? wasteType;
+    final category = wasteType;
     final recommendedBin = result['recommended_bin'] as String? ?? '';
-    final recyclingTips = result['recycling_tips'] as String? ?? result['eco_tip'] ?? '';
+    final recyclingAdvice = result['recycling_advice'] as String? ?? result['recycling_tips'] as String? ?? result['recycling_instructions'] as String? ?? result['eco_tip'] as String? ?? '';
     final environmentalImpact = result['environmental_impact'] as String? ?? '';
     final confidence = (result['confidence'] as num?)?.toDouble() ?? 0.0;
 
@@ -42,7 +43,7 @@ class ResultScreen extends StatelessWidget {
                           ),
                     ),
                     const SizedBox(height: 8),
-                    _RowLabel(label: 'Matériau / Catégorie', value: material),
+                    _RowLabel(label: 'Catégorie / Type', value: wasteType.replaceAll('_', ' ').trim().isEmpty ? material : wasteType.replaceAll('_', ' ')),
                     _RowLabel(label: 'Bac conseillé', value: recommendedBin),
                     if (environmentalImpact.isNotEmpty)
                       _RowLabel(label: 'Impact environnemental', value: environmentalImpact),
@@ -56,7 +57,7 @@ class ResultScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            if (recyclingTips.isNotEmpty)
+            if (recyclingAdvice.isNotEmpty)
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -70,7 +71,7 @@ class ResultScreen extends StatelessWidget {
                             ),
                       ),
                       const SizedBox(height: 8),
-                      Text(recyclingTips),
+                      Text(recyclingAdvice),
                     ],
                   ),
                 ),

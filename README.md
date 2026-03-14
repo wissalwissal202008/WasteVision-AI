@@ -1,13 +1,21 @@
 # WasteVision AI – Smart Waste Recognition 🌱♻️
 
-**WasteVision AI** is designed to make waste sorting **simple**, **intelligent**, and **educational**.
+**Important constraint:** This project uses **only free APIs**, **open-source libraries**, and **no paid services or paid API keys**. It is **fully runnable locally**. See **[CONSTRAINTS.md](CONSTRAINTS.md)**.
 
-Imagine holding an object — a plastic bottle, a food container, or a metal can — and not knowing where to dispose of it. Instead of guessing, you take a photo with the app. The app uses **artificial intelligence and computer vision** to recognize the object and provide:
+---
 
-- **What the object is**
-- **What material it is made of**
-- **Which recycling bin it belongs to**
-- **Its environmental impact**
+**WasteVision AI** is a mobile application that:
+
+- **Uses the phone camera to scan waste** (take a photo or pick from gallery; optional live camera)
+- **Detects the type of waste using AI** (CNN image classification on the backend)
+- **Displays the waste category** (Plastic, Paper, Glass, Metal, Organic, Other)
+- **Gives recycling instructions** (recommended bin, step-by-step instructions, eco tips, environmental impact)
+
+The app uses **artificial intelligence and computer vision** so you get:
+
+- **What the object is** and what material it is made of  
+- **Which recycling bin it belongs to**  
+- **Recycling instructions** and environmental impact  
 
 This helps users avoid recycling mistakes, a major challenge in modern waste management. When waste is sorted incorrectly, recyclable materials often end up in landfills instead of being recycled.
 
@@ -48,18 +56,49 @@ You can run the app **in the browser** (web), **on your phone** (Expo Go or dev 
 |-------|--------|
 | **Frontend** | React Native, Expo, React Navigation (iOS, Android, Web) |
 | **Backend** | Python, FastAPI, Uvicorn, SQLite |
-| **AI** | TensorFlow/Keras, MobileNetV2 – 6 classes: plastic, paper/carton, glass, metal, organic, non-recyclable |
+| **AI model** | **Python**, **TensorFlow** (Keras), **CNN** (MobileNetV2 image classification). Trained with a **public waste dataset** – see `ai_model/dataset/README_DATASET.md` and `ai_model/download_dataset.py`. |
+| **Computer vision** | **OpenCV** to capture images from a camera (desktop demo: `python -m scripts.camera_demo`) and to **preprocess images** before inference (decode, resize, normalize in `backend/ml/preprocess.py`). Mobile app uses device camera via Expo; backend uses OpenCV for decode/resize. |
+| **Dataset** | Public waste datasets (e.g. Kaggle); `download_dataset.py` maps classes to: plastic, paper_cardboard, glass, metal, organic, non_recyclable. |
 | **Retraining** | User corrections stored as verified data; `retrain.py` for model updates |
-| **APIs** | **Free only:** OpenStreetMap, Nominatim, OpenRouteService (optional key), expo-notifications. No Google Maps or paid services – see [docs/FREE_APIS.md](docs/FREE_APIS.md). |
+| **APIs** | **Free only:** OpenStreetMap, Nominatim, OpenRouteService (optional key), expo-notifications. See [docs/FREE_APIS.md](docs/FREE_APIS.md). |
+
+### Waste categories (AI)
+
+The CNN detects exactly **6 categories**: **Plastic**, **Paper** (paper/cardboard), **Glass**, **Metal**, **Organic waste**, **Other** (non-recyclable). Each result includes the **waste category**, **recommended bin**, **recycling instructions** (step-by-step), and eco tips.
+
+### Train the CNN and use the camera
+
+1. **Prepare dataset** (6 class folders under `ai_model/dataset/`):
+   ```bash
+   cd ai_model
+   pip install kaggle   # optional, for download_dataset.py
+   python download_dataset.py
+   ```
+2. **Train** (from `ai_model/`):
+   ```bash
+   python train_model.py
+   ```
+   Saves `model.h5` and copies to `backend/data/weights/model.keras` for the API.
+3. **OpenCV camera demo** (desktop webcam, from `backend/`):
+   ```bash
+   python -m scripts.camera_demo
+   ```
+   Press **SPACE** to capture and classify, **Q** to quit.
+4. **Web app (phone camera)**  
+   With the backend running, open **http://&lt;your-ip&gt;:8001/app/** on your phone to use the device camera, capture a frame, and get the waste category and recycling instructions.
 
 ---
 
 ## Getting Started
 
+**No sign-up or paid API key is required.** Run the backend and frontend locally; the app works with zero external keys. See [CONSTRAINTS.md](CONSTRAINTS.md).
+
+**Quick run (camera → AI → result):** See **[RUN.md](RUN.md)** for step-by-step: start backend, run Expo or Flutter, test the full pipeline.
+
 ### Prerequisites
 
 - **Node.js** (npm)
-- **Python 3.10, 3.11 ou 3.12** pour le backend (TensorFlow ne supporte pas Python 3.14). Sur Windows, si tu as plusieurs versions : `py -3.12 -m venv venv` dans le dossier `backend`.
+- **Python 3.10, 3.11 or 3.12** for the backend (TensorFlow does not support Python 3.14). On Windows with multiple versions: `py -3.12 -m venv venv` in the `backend` folder.
 - For mobile: **Expo Go** on your phone (same Wi‑Fi as your machine)
 
 ### 1. Clone the repo
@@ -140,7 +179,10 @@ WasteVision-AI/
 │   └── App.js
 ├── frontend_flutter/     # Flutter app (Home, Result, Correction, Dashboard)
 │   └── lib/              # see frontend_flutter/README.md
+├── ai-model/             # CNN (model.py, dataset_loader.py, train_model.py, predict.py, waste_model.h5) – see SETUP.md
+├── mobile_app/           # Flutter Android app (camera → /predict → waste type + recycling advice)
 ├── ai_model/             # CNN training + TFLite export (dataset/, train_model.py, convert_tflite.py)
+├── SETUP.md              # Full setup: install, train, run backend, build APK, run locally
 ├── PITCH.md
 ├── TECHNICAL.md
 ├── ROADMAP.md
@@ -165,14 +207,12 @@ Restart the backend to load the updated model.
 
 ## Documentation
 
-<<<<<<< HEAD
-- **[FEATURES.md](FEATURES.md)** – Feature checklist: live camera, eco points, AI corrections, env stats, UI (no map)  
-- **[docs/VOICE.md](docs/VOICE.md)** – No voice/speech/TTS/STT; text and tap only  
-- **[docs/INTEGRATION.md](docs/INTEGRATION.md)** – TFLite, offline support, performance tips  
-=======
+- **[SETUP.md](SETUP.md)** – **Install, train model, run backend, build Android APK, run locally**
+- **[CONSTRAINTS.md](CONSTRAINTS.md)** – **Free APIs and open-source only; no paid services; fully runnable locally**
+- **[GOAL_AND_STACK.md](GOAL_AND_STACK.md)** – Goal (camera scan, AI detection, category, recycling instructions), 6 waste categories, technical stack (Python, TensorFlow, CNN, OpenCV, public dataset)
 - **[FEATURES.md](FEATURES.md)** – Feature checklist: live camera, eco points, map, AI corrections, env stats, UI  
-- **[docs/INTEGRATION.md](docs/INTEGRATION.md)** – TFLite, Google Maps, offline support, performance tips  
->>>>>>> 3bfd94053d89b6d4ac88f8ad30177970fec02289
+- **[docs/VOICE.md](docs/VOICE.md)** – Voice (optional); text and tap by default  
+- **[docs/INTEGRATION.md](docs/INTEGRATION.md)** – TFLite, free APIs (OSM), offline support, performance tips  
 - **[STACK_AND_FEATURES.md](STACK_AND_FEATURES.md)** – Programming languages (frontend/backend), functionalities, UI languages  
 - **[IMPROVEMENTS.md](IMPROVEMENTS.md)** – 5 improvements (eco score, badges, real-time detection, env stats; no map)  
 - **[PITCH.md](PITCH.md)** – 30-second pitch (startup / competition)  

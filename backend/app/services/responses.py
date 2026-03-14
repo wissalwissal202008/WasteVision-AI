@@ -1,6 +1,6 @@
 import config
 
-# Each tuple: (display_name, bin, impact, tip, what_is_it, material, everyday_use, diff_from_similar)
+# Each tuple: (display_name, bin, impact, tip, what_is_it, material, everyday_use, diff_from_similar, recycling_instructions)
 CATEGORY_INFO = {
     0: (
         "Plastic",
@@ -11,6 +11,7 @@ CATEGORY_INFO = {
         "It is made of plastic (e.g. PET, PE, PVC).",
         "Commonly used for bottles, trays, pots, and wrappers.",
         "Unlike paper or metal, plastic does not decompose; recycling gives it a second life.",
+        "1. Empty and rinse the item. 2. Remove caps if your local program accepts them separately. 3. Place in the yellow/recycling bin. 4. Do not bag recyclables in plastic bags.",
     ),
     1: (
         "Paper / Cardboard",
@@ -21,6 +22,7 @@ CATEGORY_INFO = {
         "It is made of cellulose fibres from wood.",
         "Used for boxes, newspapers, magazines, and packaging.",
         "Unlike plastic, paper can be recycled many times; keep it dry and clean.",
+        "1. Flatten cardboard boxes to save space. 2. Remove plastic wrap or tape when possible. 3. Keep paper dry and clean. 4. Place in the blue/paper bin.",
     ),
     2: (
         "Glass",
@@ -31,6 +33,7 @@ CATEGORY_INFO = {
         "It is made of glass (sand, soda, lime).",
         "Used for food and drink containers, and some cosmetics.",
         "Glass is infinitely recyclable; unlike plastic, it does not degrade in the process.",
+        "1. Rinse the container. 2. Remove caps and place in the correct bin (often separate). 3. Place glass in the green/glass bin or bottle bank. 4. Do not mix with ceramics or other materials.",
     ),
     3: (
         "Metal",
@@ -41,6 +44,7 @@ CATEGORY_INFO = {
         "It is made of aluminium or steel.",
         "Used for drinks, food cans, and aluminium foil.",
         "Metal is highly recyclable; a can can become a new can in a few weeks.",
+        "1. Empty and rinse cans and tins. 2. Place aluminium foil and trays in the same bin if accepted. 3. Put in the yellow or dedicated metal bin. 4. Do not include other materials.",
     ),
     4: (
         "Organic",
@@ -51,6 +55,7 @@ CATEGORY_INFO = {
         "It is made of natural, biodegradable matter (food, plants).",
         "Leftovers, peels, coffee grounds, and garden waste.",
         "Unlike other bins, organic waste is composted or turned into energy, not recycled as material.",
+        "1. Use a small kitchen bin and empty it regularly. 2. Do not put plastic bags in the organic bin unless they are compostable. 3. Place in the brown or green organic bin. 4. Check local rules for what is accepted (e.g. meat, dairy).",
     ),
     5: (
         "Non-recyclable",
@@ -61,6 +66,7 @@ CATEGORY_INFO = {
         "It may be mixed materials, dirty, or not accepted by your local scheme.",
         "Often packaging that is too small or contaminated.",
         "When in doubt, general waste avoids contaminating recycling; reduce and reuse when possible.",
+        "1. Place in the general waste (grey/black) bin. 2. Avoid putting recyclables in the same bag. 3. When possible, reduce and reuse to minimise waste.",
     ),
 }
 
@@ -79,11 +85,16 @@ def build_prediction_response(
     material = row[5]
     everyday_use = row[6]
     diff_from_similar = row[7]
+    recycling_instructions = row[8] if len(row) > 8 else None
     category_key = config.CATEGORY_NAMES[class_index]
+    recycling_advice = recycling_instructions or bin_name
     out = {
         "object_name": name,
         "waste_category": category_key,
+        "waste_type": category_key,
         "recommended_bin": bin_name,
+        "recycling_instructions": recycling_instructions,
+        "recycling_advice": recycling_advice,
         "environmental_impact": impact,
         "eco_tip": tip,
         "confidence": round(float(confidence), 4),

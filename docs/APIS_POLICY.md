@@ -10,7 +10,7 @@
 
 ## Approved services (free / open-source)
 
-The **only** external APIs and services you should use are listed in **[FREE_APIS.md](FREE_APIS.md)**. **WasteVision does not use map or geolocation**; do not add a Recycling Map. That document includes (for reference only; map/location not used in app):
+The **only** external APIs and services you should use are listed in **[FREE_APIS.md](FREE_APIS.md)**. If the app uses map or geolocation, use **only** the approved free options (OpenStreetMap, Nominatim, Overpass, optional OpenRouteService free key). No Google Maps or paid services.
 
 | Need | Free / open-source option | Integration |
 |------|---------------------------|-------------|
@@ -28,4 +28,4 @@ The **only** external APIs and services you should use are listed in **[FREE_API
 
 - **Policy:** Free or open-source APIs only; replace any paid suggestion with an approved free equivalent.
 - **List and how-to:** [FREE_APIS.md](FREE_APIS.md).
-- **Optional production integrations (TFLite, offline):** [INTEGRATION.md](INTEGRATION.md). Map/location is not used.
+- **Optional production integrations (TFLite, offline, map):** [INTEGRATION.md](INTEGRATION.md). Any external API must be from FREE_APIS.md.

@@ -11,9 +11,9 @@ class ApiService {
 
   ApiService({this.baseUrl = 'http://10.0.2.2:8001'});
 
-  /// Send image to backend, get classification result.
-  Future<Map<String, dynamic>> classifyObject(File image) async {
-    final uri = Uri.parse('$baseUrl/classify');
+  /// Send image to backend POST /predict, get waste_type, confidence, recycling_advice.
+  Future<Map<String, dynamic>> predict(File image) async {
+    final uri = Uri.parse('$baseUrl/predict');
     final request = http.MultipartRequest('POST', uri);
     request.files.add(await http.MultipartFile.fromPath('file', image.path, filename: 'image.jpg'));
     final streamed = await request.send();
@@ -27,13 +27,16 @@ class ApiService {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
+  /// Alias for predict (backward compatibility).
+  Future<Map<String, dynamic>> classifyObject(File image) async => predict(image);
+
   /// Send user correction to backend for model retraining.
   Future<void> sendCorrection(Map<String, dynamic> correction) async {
-    final uri = Uri.parse('$baseUrl/correction');
-    final response = await http.post(
+    final uri = Uri.parse('$baseUrl/history/${correction['scan_id']}/correct');
+    final response = await http.patch(
       uri,
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(correction),
+      body: jsonEncode({'corrected_category': correction['corrected_category']}),
     );
     if (response.statusCode != 200) {
       final body = response.body;

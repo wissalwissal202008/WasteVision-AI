@@ -26,7 +26,7 @@ Référence : Splash, Onboarding, Auth, Home, Navigation, Profile, Settings, Sea
 
 | Statut | Détail |
 |--------|--------|
-| 🔲 Prévu | Pas encore implémenté. **Prévu** : écrans Login / Signup, « Mot de passe oublié », option « Continuer en invité ». Backend auth (JWT) ou **Firebase / Supabase / Auth0** à brancher. |
+| 🔲 Prévu | Pas encore implémenté. **Prévu** : écrans Login / Signup, « Mot de passe oublié », option « Continuer en invité ». Backend auth (JWT) ou **free/open-source auth only** (e.g. Firebase/Supabase free tier) – see [CONSTRAINTS.md](CONSTRAINTS.md). |
 
 ---
 
@@ -113,7 +113,7 @@ Main App              ├ Historique
 
 ## Prochaines étapes recommandées
 
-1. **Auth** : brancher Firebase Auth ou Supabase (login, signup, forgot password).
+1. **Auth** (optional): use only free/open-source (e.g. JWT, Firebase/Supabase free tier). See CONSTRAINTS.md.
 2. **Notifications** : Expo Notifications ou FCM pour rappels et engagement.
 3. **Erreurs** : écran « Pas de connexion », retry, messages clairs.
 4. **Recherche / filtres** : dans l’historique (par catégorie, date).

@@ -106,7 +106,7 @@ Retraining      →  python retrain.py          →  New model weights
 
 ## 6. Security & Deployment (Summary)
 
-- **Auth:** Not implemented; optional later (JWT, Firebase, etc.).
+- **Auth:** Not implemented; if added, use only free/open-source options (e.g. JWT, or free tier of Firebase/Supabase). See [CONSTRAINTS.md](CONSTRAINTS.md).
 - **API:** Dev server with CORS open; for production, restrict origins and consider rate limiting.
 - **Secrets:** No API keys in repo; use env vars for any future keys.
 - **Build:** Expo EAS or `expo run:android` / `expo run:ios` for standalone apps; backend can run on any host (e.g. Railway, Render, VPS).

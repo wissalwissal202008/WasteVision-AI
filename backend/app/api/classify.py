@@ -9,13 +9,13 @@ router = APIRouter(prefix="/classify", tags=["classify"])
 
 @router.post("")
 async def classify(file: UploadFile = File(...)):
-    """Receive image, return AI result for Flutter client."""
-    content_type = file.content_type or ""
-    if "image" not in content_type:
-        raise HTTPException(status_code=400, detail="File must be an image.")
+    """Receive image, return AI result (same as /predict, Flutter-friendly keys)."""
     contents = await file.read()
     if len(contents) == 0:
         raise HTTPException(status_code=400, detail="Empty file.")
+    content_type = (file.content_type or "").lower()
+    if content_type and "image" not in content_type and "octet" not in content_type:
+        raise HTTPException(status_code=400, detail="File must be an image.")
     try:
         response_dict, image_name = predict_from_bytes(contents)
     except ValueError as e:
@@ -31,13 +31,17 @@ async def classify(file: UploadFile = File(...)):
         recommended_bin=response_dict["recommended_bin"],
     )
     response_dict["scan_id"] = scan_id
-    # Flutter-friendly shape: object_name, material (= category), category, recycling_tips
+    # Flutter-friendly shape: waste_type, confidence, recycling_advice + legacy keys
     return {
         "object_name": response_dict.get("object_name", response_dict["waste_category"]),
+        "waste_type": response_dict.get("waste_type", response_dict["waste_category"]),
+        "waste_category": response_dict["waste_category"],
         "material": response_dict["waste_category"],
         "category": response_dict["waste_category"],
         "recommended_bin": response_dict["recommended_bin"],
-        "recycling_tips": f"{response_dict.get('eco_tip', '')} Bin: {response_dict['recommended_bin']}.",
+        "recycling_advice": response_dict.get("recycling_advice", response_dict.get("recommended_bin", "")),
+        "recycling_tips": response_dict.get("recycling_advice", response_dict.get("recycling_instructions", response_dict.get("recommended_bin", ""))),
+        "recycling_instructions": response_dict.get("recycling_instructions", ""),
         "environmental_impact": response_dict.get("environmental_impact", ""),
         "eco_tip": response_dict.get("eco_tip", ""),
         "confidence": response_dict.get("confidence", 0),

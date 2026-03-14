@@ -1,0 +1,12 @@
+# YOLOv8 dataset config – copy to waste.yaml and set path to your dataset root.
+# Folder layout:
+#   <path>/
+#     images/train/   (.jpg)
+#     images/val/
+#     labels/train/   (.txt, one per image: "class_id x_center y_center width height" normalized 0-1)
+#     labels/val/
+path: ../dataset_waste
+train: images/train
+val: images/val
+nc: 6
+names: [plastic, paper, glass, metal, organic, other]

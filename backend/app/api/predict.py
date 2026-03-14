@@ -8,12 +8,13 @@ router = APIRouter(prefix="/predict", tags=["predict"])
 
 @router.post("", response_model=PredictionResponse)
 async def predict(file: UploadFile = File(...)):
-    content_type = file.content_type or ""
-    if "image" not in content_type:
-        raise HTTPException(status_code=400, detail="File must be an image (e.g. image/jpeg, image/png).")
     contents = await file.read()
     if len(contents) == 0:
         raise HTTPException(status_code=400, detail="Empty file.")
+    # Accept any upload; preprocess will reject non-image bytes (OpenCV/PIL)
+    content_type = (file.content_type or "").lower()
+    if content_type and "image" not in content_type and "octet" not in content_type:
+        raise HTTPException(status_code=400, detail="File must be an image (e.g. image/jpeg, image/png).")
     try:
         response_dict, image_name = predict_from_bytes(contents)
     except ValueError as e:

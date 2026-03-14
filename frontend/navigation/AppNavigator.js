@@ -13,6 +13,7 @@ import HistoryScreen from "../screens/HistoryScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import LiveScanScreen from "../screens/LiveScanScreen";
+import RecyclingTipsScreen from "../screens/RecyclingTipsScreen";
 const Tab = createBottomTabNavigator();
 
 /**
@@ -68,6 +69,7 @@ function TabIcon({ label, focused }) {
     Scan: "📷",
     Stats: "📊",
     Coach: "💬",
+    Conseils: "♻️",
     Historique: "📋",
     Profil: "👤",
     Paramètres: "⚙️",
@@ -101,6 +103,7 @@ export default function AppNavigator() {
         <Tab.Screen name="Scan" component={ScanTab} />
         <Tab.Screen name="Stats" component={DashboardScreen} />
         <Tab.Screen name="Coach" component={AssistantScreen} />
+        <Tab.Screen name="Conseils" component={RecyclingTipsScreen} />
         <Tab.Screen name="Historique" component={HistoryScreen} />
         <Tab.Screen name="Profil" component={ProfileScreen} />
         <Tab.Screen name="Paramètres" component={SettingsScreen} />

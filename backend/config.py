@@ -6,6 +6,8 @@ DATABASE_PATH = BASE_DIR / "data" / "wastevision.db"
 UPLOADS_DIR = BASE_DIR / "data" / "uploads"
 WEIGHTS_DIR = BASE_DIR / "data" / "weights"
 WEIGHTS_PATH = WEIGHTS_DIR / "model.keras"
+# Optional: YOLOv8 weights for multi-object detection (e.g. best.pt from ai-model/train_yolov8.py)
+YOLO_WEIGHTS_PATH = WEIGHTS_DIR / "yolov8_waste.pt"
 os.makedirs(BASE_DIR / "data", exist_ok=True)
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 os.makedirs(WEIGHTS_DIR, exist_ok=True)
