@@ -165,9 +165,14 @@ Restart the backend to load the updated model.
 
 ## Documentation
 
+<<<<<<< HEAD
 - **[FEATURES.md](FEATURES.md)** – Feature checklist: live camera, eco points, AI corrections, env stats, UI (no map)  
 - **[docs/VOICE.md](docs/VOICE.md)** – No voice/speech/TTS/STT; text and tap only  
 - **[docs/INTEGRATION.md](docs/INTEGRATION.md)** – TFLite, offline support, performance tips  
+=======
+- **[FEATURES.md](FEATURES.md)** – Feature checklist: live camera, eco points, map, AI corrections, env stats, UI  
+- **[docs/INTEGRATION.md](docs/INTEGRATION.md)** – TFLite, Google Maps, offline support, performance tips  
+>>>>>>> 3bfd94053d89b6d4ac88f8ad30177970fec02289
 - **[STACK_AND_FEATURES.md](STACK_AND_FEATURES.md)** – Programming languages (frontend/backend), functionalities, UI languages  
 - **[IMPROVEMENTS.md](IMPROVEMENTS.md)** – 5 improvements (eco score, badges, real-time detection, env stats; no map)  
 - **[PITCH.md](PITCH.md)** – 30-second pitch (startup / competition)  
