@@ -51,7 +51,15 @@ def _normalize_category(category: str | None) -> str:
 
 
 def record_validated_detection(category: str | None) -> None:
-    """Call after a successful /predict or each box persisted from /detect."""
+    """Call after a successful /predict or each box persisted from /detect.
+
+    Skips updates when ``category`` is missing (None or blank): those detections
+    must not be folded into ``non_recyclable`` for impact stats.
+    """
+    if category is None:
+        return
+    if not str(category).strip():
+        return
     cat = _normalize_category(category)
     grams = float(CO2_GRAMS_BY_CATEGORY.get(cat, 0.0))
     col = COUNT_COLUMN.get(cat, "count_non_recyclable")

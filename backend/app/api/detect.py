@@ -77,15 +77,24 @@ async def detect(
 
     logger.info("Detect: %d detection(s)", len(out))
 
-    # Impact tracker: one increment per returned detection (validated inference)
+    # Impact tracker: count only detections with an explicit category (schema allows None).
     if len(out) > 0:
+        missing_cat = sum(
+            1 for item in out if item.category is None or not str(item.category).strip()
+        )
+        if missing_cat:
+            logger.info(
+                "Detect: %d/%d detection(s) without category; excluded from impact stats",
+                missing_cat,
+                len(out),
+            )
         for item in out:
             try:
                 user_stats_repo.record_validated_detection(item.category)
             except Exception:
                 pass
 
-    # Persist each successful detection to SQLite (waste.db) + save frame once
+    # Persist each successful detection to SQLite + save frame once
     if len(out) > 0:
         image_name = f"detect_{uuid.uuid4().hex[:12]}.jpg"
         upload_path = config.UPLOADS_DIR / image_name

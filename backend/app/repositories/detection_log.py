@@ -1,5 +1,5 @@
 """
-Persist successful multi-object detections (POST /detect) into SQLite (waste.db).
+Persist successful multi-object detections (POST /detect) into SQLite (see config.DATABASE_PATH).
 One row per bounding box.
 """
 from app.database import get_connection

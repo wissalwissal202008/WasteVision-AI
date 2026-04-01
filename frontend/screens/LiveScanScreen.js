@@ -2,7 +2,7 @@
  * Live scan screen (équivalent “ScanScreen” avec caméra) : aperçu, POST /detect,
  * rectangles sur les boîtes normalisées de l’API, animation du scan et fade-in du libellé catégorie.
  */
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -34,11 +34,17 @@ export default function LiveScanScreen({ onResult, onBack, navLang }) {
   const [viewSize, setViewSize] = useState({ width: SCREEN_WIDTH, height: SCREEN_HEIGHT });
   const cameraRef = useRef(null);
   const intervalRef = useRef(null);
+  /** Évite les chevauchements : le state `analyzing` dans une closure de setInterval serait périmé. */
+  const captureBusyRef = useRef(false);
+  /** Garde `t` à jour sans recréer l’intervalle à chaque changement i18n. */
+  const tRef = useRef(t);
+  tRef.current = t;
   const scanAnim = useRef(new Animated.Value(0)).current;
   const categoryFadeAnim = useRef(new Animated.Value(0)).current;
 
-  const captureAndDetect = async () => {
-    if (!cameraRef.current || analyzing) return;
+  const captureAndDetect = useCallback(async () => {
+    if (!cameraRef.current || captureBusyRef.current) return;
+    captureBusyRef.current = true;
     setAnalyzing(true);
     setError(null);
     try {
@@ -48,21 +54,21 @@ export default function LiveScanScreen({ onResult, onBack, navLang }) {
         mute: true,
       }) ?? await cameraRef.current?.takePicture?.({ quality: 0.6 });
       if (!photo?.uri) {
-        setAnalyzing(false);
         return;
       }
       const res = await detect(photo.uri, "image/jpeg", apiLang);
       const list = res?.detections ?? [];
       setDetections(list);
       setPhotoUri(photo.uri);
-      if (list.length === 0) setError(t("liveScan.noDetection"));
+      if (list.length === 0) setError(tRef.current("liveScan.noDetection"));
     } catch (e) {
-      setError(e?.message || t("liveScan.detectionFailed"));
+      setError(e?.message || tRef.current("liveScan.detectionFailed"));
       setDetections([]);
     } finally {
+      captureBusyRef.current = false;
       setAnalyzing(false);
     }
-  };
+  }, [apiLang]);
 
   useEffect(() => {
     if (!permission?.granted) return;
@@ -70,7 +76,7 @@ export default function LiveScanScreen({ onResult, onBack, navLang }) {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [permission?.granted, t, apiLang]);
+  }, [permission?.granted, captureAndDetect]);
 
   useEffect(() => {
     if (analyzing) {
