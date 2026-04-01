@@ -1,5 +1,7 @@
 import config
 
+from ml.classifier import recycling_advice_for_category
+
 # Each tuple: (display_name, bin, impact, tip, what_is_it, material, everyday_use, diff_from_similar, recycling_instructions)
 CATEGORY_INFO = {
     0: (
@@ -72,7 +74,11 @@ CATEGORY_INFO = {
 
 
 def build_prediction_response(
-    class_index: int, confidence: float, product_type: str | None = None, scan_id: int | None = None
+    class_index: int,
+    confidence: float,
+    product_type: str | None = None,
+    scan_id: int | None = None,
+    lang: str | None = None,
 ) -> dict:
     if class_index not in CATEGORY_INFO:
         class_index = 5
@@ -85,9 +91,9 @@ def build_prediction_response(
     material = row[5]
     everyday_use = row[6]
     diff_from_similar = row[7]
-    recycling_instructions = row[8] if len(row) > 8 else None
     category_key = config.CATEGORY_NAMES[class_index]
-    recycling_advice = recycling_instructions or bin_name
+    recycling_advice = recycling_advice_for_category(category_key, lang)
+    recycling_instructions = recycling_advice
     out = {
         "object_name": name,
         "waste_category": category_key,

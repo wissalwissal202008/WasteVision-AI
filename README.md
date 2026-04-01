@@ -1,5 +1,3 @@
-# WasteVision AI – Smart Waste Recognition 🌱♻️
-
 # WasteVision AI
 
 **Real-time waste detection for your phone.** Point the camera at waste, get instant classification and recycling instructions. All tools are **free and open-source**; no paid APIs required.
@@ -207,10 +205,3 @@ MIT. See [LICENSE](LICENSE).
 ---
 
 **WasteVision AI** — Use the camera to sort waste and get recycling instructions. 🌱♻️
-
-
----
-
-## License
-
-This project is under the **MIT** license. See [LICENSE](LICENSE).

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { View, Text, StyleSheet, Animated } from "react-native";
+import { View, Text, StyleSheet, Animated, Platform } from "react-native";
 import { colors, spacing, fontSize } from "../constants/theme";
 
 export default function SplashScreen() {
@@ -7,24 +7,25 @@ export default function SplashScreen() {
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const spinAnim = useRef(new Animated.Value(0)).current;
 
+  const useNative = Platform.OS !== "web";
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 600,
-        useNativeDriver: true,
+        useNativeDriver: useNative,
       }),
       Animated.spring(scaleAnim, {
         toValue: 1,
         friction: 6,
-        useNativeDriver: true,
+        useNativeDriver: useNative,
       }),
     ]).start();
     const spin = Animated.loop(
       Animated.timing(spinAnim, {
         toValue: 1,
         duration: 1000,
-        useNativeDriver: true,
+        useNativeDriver: useNative,
       })
     );
     spin.start();

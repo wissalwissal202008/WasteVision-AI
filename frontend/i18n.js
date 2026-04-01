@@ -5,38 +5,32 @@
  */
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import * as Localization from "expo-localization";
 import { Platform, I18nManager } from "react-native";
 
 import fr from "./locales/fr.json";
 import en from "./locales/en.json";
 import ar from "./locales/ar.json";
+import { resources as dictResources, isRTLLocale } from "./src/i18n/translations";
 
 const resources = {
-  fr: { translation: fr },
-  en: { translation: en },
-  ar: { translation: ar },
+  fr: { translation: { ...fr, dict: dictResources.fr.translation.dict } },
+  en: { translation: { ...en, dict: dictResources.en.translation.dict } },
+  ar: { translation: { ...ar, dict: dictResources.ar.translation.dict } },
 };
 
-let deviceLocale = "fr";
-try {
-  if (typeof Localization.getLocales === "function") {
-    const first = Localization.getLocales()[0];
-    if (first?.languageCode) deviceLocale = first.languageCode.slice(0, 2);
-  }
-} catch {
-  deviceLocale = "fr";
-}
+/** Langue par défaut : français (surchargée par AsyncStorage dans App.js si l’utilisateur a choisi une langue). */
 const supported = ["fr", "en", "ar"];
-const fallbackLng = supported.includes(deviceLocale) ? deviceLocale : "fr";
 
 i18n.use(initReactI18next).init({
   resources,
-  lng: fallbackLng,
+  lng: "fr",
   fallbackLng: "fr",
   supportedLngs: supported,
   interpolation: {
     escapeValue: false,
+  },
+  react: {
+    useSuspense: false,
   },
 });
 
@@ -48,16 +42,39 @@ export const SUPPORTED_LANGUAGES = [
 ];
 
 /**
- * Apply RTL layout for Arabic. Call after changeLanguage('ar') or on app load.
- * On native, RTL may require app restart to take full effect.
+ * Applique la direction de l’interface : arabe → RTL (miroir), sinon LTR.
+ * - **Native** : `I18nManager.allowRTL(true)` puis `forceRTL(true)` si langue arabe,
+ *   sinon `forceRTL(false)`. Certaines versions Android/iOS peuvent nécessiter un
+ *   redémarrage de l’app pour un retour LTR parfait après l’arabe.
+ * - **Web** : `document.documentElement.dir = 'rtl' | 'ltr'`.
  */
 export function applyRTL(lang) {
-  if (Platform.OS === "web") return;
-  const isRTL = lang === "ar";
-  if (typeof I18nManager.forceRTL === "function") {
-    I18nManager.forceRTL(isRTL);
+  const rtl = isRTLLocale(lang || "");
+
+  if (Platform.OS === "web") {
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("dir", rtl ? "rtl" : "ltr");
+      const base = (lang && String(lang).split("-")[0].toLowerCase()) || "fr";
+      document.documentElement.setAttribute("lang", base);
+    }
+    return;
+  }
+
+  if (typeof I18nManager.allowRTL === "function") {
     I18nManager.allowRTL(true);
   }
+  if (typeof I18nManager.forceRTL === "function") {
+    I18nManager.forceRTL(rtl);
+  }
 }
+
+/** À chaque changement de langue i18next, garde I18nManager / le DOM alignés. */
+i18n.on("languageChanged", (lng) => {
+  applyRTL(lng);
+});
+
+applyRTL(i18n.language);
+
+export { isRTLLocale, RTL_LOCALES } from "./src/i18n/translations";
 
 export default i18n;

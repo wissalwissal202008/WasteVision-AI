@@ -1,0 +1,64 @@
+# WasteVision AI – System Guidelines
+
+Use these rules when editing or generating code for the WasteVision-AI project (Expo React Native app + FastAPI backend).
+
+---
+
+# General guidelines
+
+* **Stack:** Frontend = Expo (React Native), JS. Backend = Python, FastAPI. Use only free and open-source tools; no paid APIs (see CONSTRAINTS.md).
+* **Mobile-first:** All UI must work on phone (portrait). Avoid web-only or desktop-only patterns. Target Android APK build.
+* **Avoid circular imports:** In `frontend/components`, do not import from `./index` inside a component that is exported by `index.js`. Import from the specific file (e.g. `./PrimaryButton`, `./Card`).
+* **i18n:** All user-facing strings go through `useTranslation()` / `t("key")`. Keys live in `frontend/locales/fr.json`, `en.json`, `ar.json`. Add missing keys when adding new copy.
+* **Refactor as you go:** Keep screens under ~250 lines when possible; move reusable UI into `frontend/components` and helpers into `frontend/utils` or `frontend/services`.
+* **Backend:** Use `config.py` for paths and constants. Log with `logging`; validate request inputs; return consistent JSON shapes (see existing `app/api/`).
+
+---
+
+# Design system guidelines
+
+Design follows **Figma "Eco-Friendly Waste Detection App"** (see `figma-design/`). Use the tokens below so the app stays consistent.
+
+## Tokens (frontend/constants/)
+
+* **Colors:** Import from `../constants/theme` or `../constants/colors`. Use `colors.primary`, `colors.background`, `colors.text`, `colors.textSecondary`, `colors.surface`, `colors.accent`, `colors.gradientHeader`, `colors.gradientScanCta`, `colors.gradientStatsHeader`, `colors.gradientLearnHeader`, `colors.gradientResultHeader`, `colors.gradientEcoTip`, `colors.gradientImpact`. For waste categories use `getCategoryColor(categoryKey)`.
+* **Spacing:** Use `spacing.xs | sm | md | lg | xl | xxl` (4–48). Do not hardcode padding/margin values like 12 or 20 unless matching a one-off Figma value.
+* **Typography:** Use `fontSize.caption | small | body | subhead | title | headline | display` (12–28). Prefer `fontWeight: "600"` or `"700"` for headings.
+* **Radii:** Use `borderRadius.sm | md | lg | xl | xxl | full`. For Figma “organic” shapes use 20–32 for cards and pills.
+
+## Layout
+
+* Prefer `flex` and `flexDirection`; use absolute positioning only for overlays (e.g. camera UI, floating buttons).
+* Screen background: `colors.background` (#f0fdf4). Cards/surfaces: `colors.surface` (#ffffff).
+* Headers: use `LinearGradient` from `expo-linear-gradient` with `colors.gradientHeader` (or the screen-specific gradient). Rounded bottom corners (24–32).
+
+## Buttons
+
+* **Primary (main action):** Filled with `colors.primary` or a gradient (`colors.gradientScanCta`). Use `PrimaryButton` or a `TouchableOpacity` + `LinearGradient`. One primary CTA per section.
+* **Secondary (alternative):** Outline: `borderWidth: 2`, `borderColor: colors.primary`, transparent or white background. Use `SecondaryButton` or styled `TouchableOpacity`.
+* **Text/tertiary:** Text only, `color: colors.primary`, no border. For low-emphasis actions.
+
+## Cards and lists
+
+* Cards: white background, `borderRadius` 20–24, padding `spacing.lg`. Optional soft shadow for elevation.
+* Category chips/badges: use `getCategoryColor(categoryKey).bg` and `.text` for waste types (plastic, paper_cardboard, glass, metal, organic, non_recyclable).
+
+## Tab bar
+
+* Rounded top (e.g. 24), light shadow. Icons: Accueil 🌱, Scan 📷, Stats 📊, Conseils 📖. Max 8 tabs; keep labels short (use i18n `tabs.*`).
+
+---
+
+# API and backend
+
+* **Endpoints:** `POST /predict` (single classification), `POST /detect` (list of detections with bounding_box). Response shapes are fixed; do not change keys without updating the frontend.
+* **Errors:** Return 400 for bad input, 422 for validation errors, 500 for server errors. Log exceptions; avoid leaking stack traces in JSON.
+* **Model:** Backend loads classifier at startup; optional YOLOv8 when `backend/data/weights/yolov8_waste.pt` exists. Keep `ml/detector.py` and `ml/yolo_detector.py` in sync with these contracts.
+
+---
+
+# File and naming
+
+* **Screens:** `frontend/screens/*Screen.js`. One main component per file; default export the screen.
+* **Components:** `frontend/components/*.js`, exported via `frontend/components/index.js` only if they do not create require cycles.
+* **Locales:** Add keys under logical groups (e.g. `home.*`, `scan.*`, `result.*`, `tabs.*`). Prefer existing keys over new ones when the meaning matches.

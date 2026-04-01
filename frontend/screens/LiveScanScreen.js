@@ -1,6 +1,6 @@
 /**
- * Real-time waste detection: camera preview, periodic capture, POST /detect,
- * draw bounding boxes and labels. Scanning animation while analyzing.
+ * Live scan screen (équivalent “ScanScreen” avec caméra) : aperçu, POST /detect,
+ * rectangles sur les boîtes normalisées de l’API, animation du scan et fade-in du libellé catégorie.
  */
 import React, { useState, useRef, useEffect } from "react";
 import {
@@ -16,13 +16,16 @@ import {
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { colors, spacing, fontSize, borderRadius, getCategoryColor } from "../constants/theme";
 import { getWasteTypeLabel } from "../constants/wasteTypeColors";
+import { useTranslation } from "react-i18next";
 import { detect } from "../api/client";
-import { predict } from "../services/detection";
+import { createShadowStyle } from "../utils/shadowStyles";
 
 const LIVE_INTERVAL_MS = 1200;
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-export default function LiveScanScreen({ onResult, onBack }) {
+export default function LiveScanScreen({ onResult, onBack, navLang }) {
+  const { t, i18n } = useTranslation();
+  const apiLang = navLang ?? i18n.language;
   const [permission, requestPermission] = useCameraPermissions();
   const [detections, setDetections] = useState([]);
   const [photoUri, setPhotoUri] = useState(null);
@@ -32,6 +35,7 @@ export default function LiveScanScreen({ onResult, onBack }) {
   const cameraRef = useRef(null);
   const intervalRef = useRef(null);
   const scanAnim = useRef(new Animated.Value(0)).current;
+  const categoryFadeAnim = useRef(new Animated.Value(0)).current;
 
   const captureAndDetect = async () => {
     if (!cameraRef.current || analyzing) return;
@@ -47,13 +51,13 @@ export default function LiveScanScreen({ onResult, onBack }) {
         setAnalyzing(false);
         return;
       }
-      const res = await detect(photo.uri, "image/jpeg");
+      const res = await detect(photo.uri, "image/jpeg", apiLang);
       const list = res?.detections ?? [];
       setDetections(list);
       setPhotoUri(photo.uri);
-      if (list.length === 0) setError("No waste detected. Try again.");
+      if (list.length === 0) setError(t("liveScan.noDetection"));
     } catch (e) {
-      setError(e?.message || "Detection failed");
+      setError(e?.message || t("liveScan.detectionFailed"));
       setDetections([]);
     } finally {
       setAnalyzing(false);
@@ -66,20 +70,34 @@ export default function LiveScanScreen({ onResult, onBack }) {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [permission?.granted]);
+  }, [permission?.granted, t, apiLang]);
 
   useEffect(() => {
     if (analyzing) {
       Animated.loop(
         Animated.sequence([
-          Animated.timing(scanAnim, { toValue: 1, useNativeDriver: true, duration: 600 }),
-          Animated.timing(scanAnim, { toValue: 0, useNativeDriver: true, duration: 600 }),
+          Animated.timing(scanAnim, { toValue: 1, useNativeDriver: Platform.OS !== "web", duration: 600 }),
+          Animated.timing(scanAnim, { toValue: 0, useNativeDriver: Platform.OS !== "web", duration: 600 }),
         ])
       ).start();
     } else {
       scanAnim.setValue(0);
     }
   }, [analyzing]);
+
+  /** Fade-in quand une catégorie / détection s’affiche après analyse */
+  useEffect(() => {
+    if (detections.length > 0 && !analyzing) {
+      categoryFadeAnim.setValue(0);
+      Animated.timing(categoryFadeAnim, {
+        toValue: 1,
+        duration: 380,
+        useNativeDriver: Platform.OS !== "web",
+      }).start();
+    } else {
+      categoryFadeAnim.setValue(0);
+    }
+  }, [detections, analyzing, categoryFadeAnim]);
 
   const handleUseResult = async () => {
     if (detections.length > 0 && photoUri && onResult) {
@@ -101,19 +119,19 @@ export default function LiveScanScreen({ onResult, onBack }) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.helperText}>Checking camera…</Text>
+        <Text style={styles.helperText}>{t("liveScan.checkingCamera")}</Text>
       </View>
     );
   }
   if (!permission.granted) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.helperText}>Camera access is required for live detection.</Text>
+        <Text style={styles.helperText}>{t("liveScan.cameraRequiredLive")}</Text>
         <TouchableOpacity style={styles.primaryBtn} onPress={requestPermission}>
-          <Text style={styles.primaryBtnText}>Grant permission</Text>
+          <Text style={styles.primaryBtnText}>{t("liveScan.grantPermission")}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.backBtn} onPress={onBack}>
-          <Text style={styles.backBtnText}>← Back</Text>
+          <Text style={styles.backBtnText}>{t("liveScan.back")}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -122,9 +140,9 @@ export default function LiveScanScreen({ onResult, onBack }) {
   if (Platform.OS === "web") {
     return (
       <View style={styles.centered}>
-        <Text style={styles.helperText}>Live detection is available on mobile (Expo Go or native build).</Text>
+        <Text style={styles.helperText}>{t("liveScan.webOnlyMobile")}</Text>
         <TouchableOpacity style={styles.backBtn} onPress={onBack}>
-          <Text style={styles.backBtnText}>← Back to scan</Text>
+          <Text style={styles.backBtnText}>{t("liveScan.backToScan")}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -132,73 +150,93 @@ export default function LiveScanScreen({ onResult, onBack }) {
 
   const scanOpacity = scanAnim.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.8] });
 
+  const primary = detections[0];
+  const categoryLabel =
+    primary?.category != null && primary.category !== ""
+      ? getWasteTypeLabel(primary.category)
+      : primary?.label ?? "";
+
   return (
-    <View style={styles.container} onLayout={(e) => setViewSize(e.nativeEvent.layout)}>
-      <CameraView ref={cameraRef} style={styles.camera} facing="back" />
+    <View style={styles.container}>
+      {/* Zone caméra + boîtes : même taille que l’image capturée (coords API 0–1) */}
+      <View
+        style={styles.cameraSurface}
+        onLayout={(e) => {
+          const { width, height } = e.nativeEvent.layout;
+          setViewSize({ width, height });
+        }}
+      >
+        <CameraView ref={cameraRef} style={StyleSheet.absoluteFillObject} facing="back" />
 
-      {/* Bounding box overlays (normalized 0-1 → view size) */}
-      {detections.length > 0 && viewSize.width > 0 && (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          {detections.map((d, i) => {
-            const bbox = d.bounding_box || [0, 0, 1, 1];
-            const [x1, y1, x2, y2] = bbox.map(Number);
-            const left = x1 * viewSize.width;
-            const top = y1 * viewSize.height;
-            const w = (x2 - x1) * viewSize.width;
-            const h = (y2 - y1) * viewSize.height;
-            const cat = d.category || "non_recyclable";
-            const catColor = getCategoryColor(cat);
-            return (
-              <View
-                key={i}
-                style={[
-                  styles.bbox,
-                  {
-                    left,
-                    top,
-                    width: Math.max(w, 40),
-                    height: Math.max(h, 40),
-                    borderColor: catColor.bg || colors.primary,
-                  },
-                ]}
-              >
-                <View style={[styles.bboxLabel, { backgroundColor: catColor.bg || colors.primary }]}>
-                  <Text style={styles.bboxLabelText} numberOfLines={1}>
-                    {d.label} {Math.round((d.confidence || 0) * 100)}%
-                  </Text>
+        {detections.length > 0 && viewSize.width > 0 && (
+          <View style={[StyleSheet.absoluteFillObject, styles.bboxLayer]}>
+            {detections.map((d, i) => {
+              const bbox = d.bounding_box || [0, 0, 1, 1];
+              const [x1, y1, x2, y2] = bbox.map(Number);
+              const left = x1 * viewSize.width;
+              const top = y1 * viewSize.height;
+              const w = (x2 - x1) * viewSize.width;
+              const h = (y2 - y1) * viewSize.height;
+              const cat = d.category || "non_recyclable";
+              const catColor = getCategoryColor(cat);
+              return (
+                <View
+                  key={`${i}-${left}-${top}`}
+                  style={[
+                    styles.bbox,
+                    {
+                      left,
+                      top,
+                      width: Math.max(w, 36),
+                      height: Math.max(h, 36),
+                      borderColor: catColor.bg || colors.primary,
+                    },
+                  ]}
+                >
+                  <View style={[styles.bboxLabel, { backgroundColor: catColor.bg || colors.primary }]}>
+                    <Text style={styles.bboxLabelText} numberOfLines={1}>
+                      {d.label} · {Math.round((d.confidence || 0) * 100)}%
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            );
-          })}
-        </View>
-      )}
+              );
+            })}
+          </View>
+        )}
 
-      {/* Scanning animation */}
-      {analyzing && (
-        <Animated.View style={[styles.scanLine, { opacity: scanOpacity }]} pointerEvents="none" />
-      )}
+        {analyzing && (
+          <Animated.View
+            style={[styles.scanLine, { opacity: scanOpacity }]}
+          />
+        )}
+      </View>
 
-      {/* Overlay UI */}
-      <View style={styles.overlay} pointerEvents="box-none">
+      {/* UI par-dessus (ne recouvre pas les coords des boîtes : boîtes dans cameraSurface) */}
+      <View style={styles.overlay}>
         {analyzing && (
           <View style={styles.analyzingBadge}>
             <ActivityIndicator size="small" color={colors.textOnPrimary} />
-            <Text style={styles.analyzingText}>Scanning…</Text>
+            <Text style={styles.analyzingText}>{t("liveScan.scanning")}</Text>
           </View>
         )}
         {detections.length > 0 && !analyzing && (
           <View style={styles.labelCard}>
-            <Text style={styles.labelName}>{detections[0].label}</Text>
+            <Animated.View style={{ opacity: categoryFadeAnim }}>
+              <Text style={styles.labelCategory}>{categoryLabel}</Text>
+              <Text style={styles.labelName}>{primary?.label}</Text>
+            </Animated.View>
             <Text style={styles.labelConfidence}>
-              {Math.round((detections[0].confidence || 0) * 100)}% confidence
+              {t("liveScan.confidenceShort", {
+                percent: Math.round((primary?.confidence || 0) * 100),
+              })}
             </Text>
-            {detections[0].recycling_advice ? (
+            {primary?.recycling_advice ? (
               <Text style={styles.labelAdvice} numberOfLines={2}>
-                ♻️ {detections[0].recycling_advice}
+                ♻️ {primary.recycling_advice}
               </Text>
             ) : null}
             <TouchableOpacity style={styles.validateBtn} onPress={handleUseResult}>
-              <Text style={styles.validateBtnText}>Use this result</Text>
+              <Text style={styles.validateBtnText}>{t("liveScan.useResult")}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -207,27 +245,39 @@ export default function LiveScanScreen({ onResult, onBack }) {
 
       <View style={styles.topBar}>
         <TouchableOpacity onPress={onBack} style={styles.topBarBtn}>
-          <Text style={styles.topBarBtnText}>← Back</Text>
+          <Text style={styles.topBarBtnText}>{t("liveScan.back")}</Text>
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>Live detection</Text>
+        <Text style={styles.topBarTitle}>{t("liveScan.title")}</Text>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  camera: { flex: 1, width: "100%" },
+  container: { flex: 1, backgroundColor: "#000" },
+  cameraSurface: {
+    flex: 1,
+    width: "100%",
+    overflow: "hidden",
+  },
+  bboxLayer: {
+    zIndex: 2,
+    elevation: 2,
+    pointerEvents: "none",
+  },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: "center",
     alignItems: "center",
     padding: spacing.lg,
+    zIndex: 4,
+    pointerEvents: "box-none",
   },
   bbox: {
     position: "absolute",
     borderWidth: 3,
     borderRadius: 4,
+    backgroundColor: "rgba(16, 185, 129, 0.06)",
   },
   bboxLabel: {
     position: "absolute",
@@ -246,6 +296,8 @@ const styles = StyleSheet.create({
     height: 3,
     backgroundColor: colors.primary,
     top: "48%",
+    zIndex: 3,
+    pointerEvents: "none",
   },
   analyzingBadge: {
     flexDirection: "row",
@@ -263,13 +315,22 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     minWidth: 220,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    ...createShadowStyle({
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 4,
+    }),
   },
-  labelName: { fontSize: fontSize.subhead, fontWeight: "700", color: colors.text, textAlign: "center" },
+  labelCategory: {
+    fontSize: fontSize.title,
+    fontWeight: "800",
+    color: colors.primary,
+    textAlign: "center",
+    marginBottom: spacing.xs,
+  },
+  labelName: { fontSize: fontSize.small, fontWeight: "600", color: colors.textSecondary, textAlign: "center" },
   labelConfidence: { fontSize: fontSize.caption, color: colors.textSecondary, marginTop: spacing.xs },
   labelAdvice: { fontSize: fontSize.caption, color: colors.text, marginTop: spacing.sm, textAlign: "center" },
   validateBtn: {
@@ -293,6 +354,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.sm,
     backgroundColor: "rgba(0,0,0,0.3)",
+    zIndex: 5,
+    pointerEvents: "box-none",
   },
   topBarBtn: { padding: spacing.sm },
   topBarBtnText: { color: colors.textOnPrimary, fontWeight: "600" },

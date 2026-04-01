@@ -1,6 +1,6 @@
 /**
- * Default light palette only. No dependencies – ensures "colors" is always defined when imported.
- * Used by theme.js and by any module that needs the palette before theme is fully loaded.
+ * WasteVision AI – palette from Figma "Eco-Friendly Waste Detection App".
+ * Mint/sage background, emerald/teal primary, organic gradients.
  */
 export const colors = {
   primary: "#10b981",
@@ -28,6 +28,14 @@ export const colors = {
   chart3: "#eab308",
   chart4: "#f97316",
   chart5: "#84cc16",
+  // Figma "Eco-Friendly Waste Detection App" gradients
+  gradientHeader: ["#d1fae5", "#a7f3d0", "#6ee7b7"],
+  gradientScanCta: ["#6ee7b7", "#5eead4"],
+  gradientEcoTip: ["#dbeafe", "#bfdbfe"],
+  gradientResultHeader: ["#93c5fd", "#7dd3fc", "#a5f3fc"],
+  gradientImpact: ["#d1fae5", "#a7f3d0"],
+  gradientStatsHeader: ["#c084fc", "#f0abfc", "#fb923c"],
+  gradientLearnHeader: ["#86efac", "#6ee7b7", "#5eead4"],
   category: {
     plastic: { bg: "#eab308", light: "#fef9c3", text: "#713f12" },
     paper_cardboard: { bg: "#f97316", light: "#ffedd5", text: "#7c2d12" },

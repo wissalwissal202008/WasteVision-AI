@@ -5,7 +5,7 @@ from ml.preprocess import preprocess_from_bytes
 import config
 
 
-def predict_from_bytes(image_bytes: bytes):
+def predict_from_bytes(image_bytes: bytes, lang: str | None = None):
     try:
         batch = preprocess_from_bytes(image_bytes)
     except Exception as e:
@@ -17,6 +17,6 @@ def predict_from_bytes(image_bytes: bytes):
     if confidence < 0.2:
         raise ValueError("Image not clear or unsupported object. Try a clearer photo.")
     product_type = None
-    response = responses.build_prediction_response(class_index, confidence, product_type)
+    response = responses.build_prediction_response(class_index, confidence, product_type, lang=lang)
     image_name = f"scan_{uuid.uuid4().hex[:12]}.jpg"
     return response, image_name

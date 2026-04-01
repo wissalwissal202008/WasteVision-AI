@@ -20,15 +20,15 @@ export default function ProfileScreen({ navigation }) {
 
       <Card style={styles.card}>
         <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate("Paramètres")}>
-          <Text style={styles.menuLabel}>{t("profile.settings")}</Text>
+          <Text style={styles.menuLabel}>{t("dict.settings")}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.menuRow, styles.menuRowBorder]} onPress={() => navigation.navigate("Historique")}>
-          <Text style={styles.menuLabel}>{t("profile.historyScans")}</Text>
+          <Text style={styles.menuLabel}>{t("dict.history")}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.menuRow, styles.menuRowBorder]} onPress={() => navigation.navigate("Stats")}>
-          <Text style={styles.menuLabel}>{t("profile.myImpact")}</Text>
+          <Text style={styles.menuLabel}>{t("dict.impact")}</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
       </Card>

@@ -1,6 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { colors, spacing, borderRadius } from "../constants/theme";
+import { createShadowStyle } from "../utils/shadowStyles";
 
 export function Card({ children, style, elevated }) {
   return (
@@ -18,11 +19,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  elevated: {
+  elevated: createShadowStyle({
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
-  },
+  }),
 });

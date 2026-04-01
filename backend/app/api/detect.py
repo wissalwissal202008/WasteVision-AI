@@ -4,9 +4,14 @@ Input: image file.
 Output: { detections: [ { label, confidence, bounding_box: [x1,y1,x2,y2], recycling_advice } ] }.
 """
 import logging
-from fastapi import APIRouter, File, HTTPException, UploadFile
+import uuid
+
+from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel, Field
 
+import config
+from app.repositories import detection_log as detection_log_repo
+from app.repositories import user_stats as user_stats_repo
 from ml.detector import detect_from_bytes
 
 logger = logging.getLogger(__name__)
@@ -27,7 +32,10 @@ class DetectResponse(BaseModel):
 
 
 @router.post("", response_model=DetectResponse)
-async def detect(file: UploadFile = File(...)):
+async def detect(
+    file: UploadFile = File(...),
+    lang: str = Query("fr", description="Langue des conseils recyclage : fr (défaut), en ou ar."),
+):
     """Accept image, return list of detections with label, confidence, bounding_box, recycling_advice."""
     if not file.filename and not file.file:
         logger.warning("Detect: empty or missing file")
@@ -43,7 +51,7 @@ async def detect(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="File must be an image (e.g. image/jpeg, image/png).")
 
     try:
-        detections = detect_from_bytes(contents)
+        detections = detect_from_bytes(contents, lang=lang)
     except ValueError as e:
         logger.info("Detect validation error: %s", e)
         raise HTTPException(status_code=422, detail=str(e))
@@ -68,4 +76,38 @@ async def detect(file: UploadFile = File(...)):
         )
 
     logger.info("Detect: %d detection(s)", len(out))
+
+    # Impact tracker: one increment per returned detection (validated inference)
+    if len(out) > 0:
+        for item in out:
+            try:
+                user_stats_repo.record_validated_detection(item.category)
+            except Exception:
+                pass
+
+    # Persist each successful detection to SQLite (waste.db) + save frame once
+    if len(out) > 0:
+        image_name = f"detect_{uuid.uuid4().hex[:12]}.jpg"
+        upload_path = config.UPLOADS_DIR / image_name
+        try:
+            with open(upload_path, "wb") as f:
+                f.write(contents)
+        except OSError as e:
+            logger.warning("Detect: could not save upload %s: %s", image_name, e)
+        else:
+            try:
+                payload = [
+                    {
+                        "label": item.label,
+                        "category": item.category,
+                        "confidence": item.confidence,
+                        "bounding_box": list(item.bounding_box),
+                        "recycling_advice": item.recycling_advice,
+                    }
+                    for item in out
+                ]
+                detection_log_repo.save_detections_batch(image_name, payload)
+            except Exception as e:
+                logger.warning("Detect: failed to log detections to DB: %s", e)
+
     return DetectResponse(detections=out)

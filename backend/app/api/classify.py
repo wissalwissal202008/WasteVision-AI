@@ -1,5 +1,5 @@
 """POST /classify – same as /predict, returns Flutter-friendly JSON (object_name, material, category, recycling_tips)."""
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 from app.repositories import history as history_repo
 from app.services.predictor import predict_from_bytes
 import config
@@ -8,7 +8,10 @@ router = APIRouter(prefix="/classify", tags=["classify"])
 
 
 @router.post("")
-async def classify(file: UploadFile = File(...)):
+async def classify(
+    file: UploadFile = File(...),
+    lang: str = Query("fr", description="Langue du conseil recyclage : fr (défaut), en ou ar."),
+):
     """Receive image, return AI result (same as /predict, Flutter-friendly keys)."""
     contents = await file.read()
     if len(contents) == 0:
@@ -17,7 +20,7 @@ async def classify(file: UploadFile = File(...)):
     if content_type and "image" not in content_type and "octet" not in content_type:
         raise HTTPException(status_code=400, detail="File must be an image.")
     try:
-        response_dict, image_name = predict_from_bytes(contents)
+        response_dict, image_name = predict_from_bytes(contents, lang=lang)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     upload_path = config.UPLOADS_DIR / image_name

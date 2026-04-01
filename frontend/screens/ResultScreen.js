@@ -10,10 +10,13 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useTranslation } from "react-i18next";
 import { Card, PrimaryButton, SecondaryButton } from "../components";
 import { colors, spacing, fontSize, borderRadius, getCategoryColor } from "../constants/theme";
 import { submitCorrection } from "../api/client";
 import { awardPointsForScan, awardPointsForCorrection, ECO_POINTS_CORRECTION } from "../services/ecoScore";
+import { createShadowStyle } from "../utils/shadowStyles";
 
 const CATEGORY_OPTIONS = [
   { key: "plastic", label: "Plastique" },
@@ -27,6 +30,7 @@ const CATEGORY_OPTIONS = [
 const CONFIDENCE_LOW_THRESHOLD = 0.6;
 
 export default function ResultScreen({ route, navigation, result: resultProp, photoUri: photoUriProp, onBack }) {
+  const { t } = useTranslation();
   const fromParams = route?.params || {};
   const result = resultProp ?? fromParams.result;
   const photoUri = photoUriProp ?? fromParams.photoUri;
@@ -87,8 +91,32 @@ export default function ResultScreen({ route, navigation, result: resultProp, ph
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      {/* Figma-style gradient header + success badge */}
+      <LinearGradient
+        colors={colors.gradientResultHeader || ["#93c5fd", "#7dd3fc", "#a5f3fc"]}
+        style={styles.resultHeader}
+        start={{ x: 0.2, y: 0 }}
+        end={{ x: 0.8, y: 1 }}
+      >
+        <View style={styles.resultHeaderRow}>
+          <TouchableOpacity style={styles.resultBackBtn} onPress={goBack}>
+            <Text style={styles.resultBackBtnText}>←</Text>
+          </TouchableOpacity>
+          <View style={styles.resultSuccessBadge}>
+            <Text style={styles.resultSuccessBadgeIcon}>✓</Text>
+            <View>
+              <Text style={styles.resultSuccessBadgeLabel}>{t("dict.detected")}</Text>
+              <Text style={styles.resultSuccessBadgeValue}>
+                {t("result.confidencePercent", { percent: confidencePercent })}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.resultHeaderSpacer} />
+        </View>
+      </LinearGradient>
+
       {/* Eco design: white result card */}
-      <View style={styles.resultCard}>
+      <View style={[styles.resultCard, styles.resultCardRaised]}>
         {photoUri ? (
           <View style={styles.photoWrap}>
             <Image source={{ uri: photoUri }} style={styles.photo} resizeMode="cover" />
@@ -261,19 +289,57 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: {
     backgroundColor: colors.background,
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxl,
   },
+  resultHeader: {
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    paddingTop: spacing.xl + 8,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+    marginBottom: -spacing.lg,
+  },
+  resultHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  resultBackBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.3)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  resultBackBtnText: { fontSize: 22, color: colors.textOnPrimary, fontWeight: "600" },
+  resultSuccessBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: "rgba(255,255,255,0.3)",
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: 24,
+  },
+  resultSuccessBadgeIcon: { fontSize: 24, color: colors.textOnPrimary },
+  resultSuccessBadgeLabel: { fontSize: 12, color: "rgba(255,255,255,0.9)" },
+  resultSuccessBadgeValue: { fontSize: fontSize.title, fontWeight: "700", color: colors.textOnPrimary },
+  resultHeaderSpacer: { width: 44 },
+  resultCardRaised: { marginTop: spacing.lg, marginBottom: spacing.lg },
   resultCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.xxl,
     marginBottom: spacing.lg,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    ...createShadowStyle({
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+      elevation: 4,
+    }),
   },
   photoWrap: {
     position: "relative",
@@ -298,9 +364,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
-    shadowRadius: 8,
-    shadowOpacity: 0.15,
-    elevation: 3,
+    ...createShadowStyle({
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 3,
+    }),
   },
   successBadgeIcon: {
     fontSize: 22,
@@ -326,10 +395,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    ...createShadowStyle({
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    }),
   },
   categoryBadgeText: {
     fontSize: fontSize.small,

@@ -7,7 +7,8 @@ import { Platform } from "react-native";
 let Notifications = null;
 try {
   const Constants = require("expo-constants").default;
-  if (Constants.appOwnership !== "expo") {
+  // Web : pas de module notifications locales (évite les avertissements expo-notifications inutiles).
+  if (Constants.appOwnership !== "expo" && Platform.OS !== "web") {
     Notifications = require("expo-notifications");
     Notifications.setNotificationHandler({
       handleNotification: async () => ({ shouldShowAlert: true, shouldPlaySound: true, shouldSetBadge: true }),

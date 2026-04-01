@@ -1,0 +1,110 @@
+diff --git a/node_modules/@react-navigation/elements/src/Header/Header.tsx b/node_modules/@react-navigation/elements/src/Header/Header.tsx
+index 0595ff6..0ca4b04 100644
+--- a/node_modules/@react-navigation/elements/src/Header/Header.tsx
++++ b/node_modules/@react-navigation/elements/src/Header/Header.tsx
+@@ -216,10 +216,9 @@ export default function Header(props: Props) {
+   return (
+     <React.Fragment>
+       <Animated.View
+-        pointerEvents="box-none"
+         style={[
+           StyleSheet.absoluteFill,
+-          { zIndex: 0 },
++          { zIndex: 0, pointerEvents: 'box-none' },
+           backgroundContainerStyle,
+         ]}
+       >
+@@ -230,27 +229,29 @@ export default function Header(props: Props) {
+         )}
+       </Animated.View>
+       <Animated.View
+-        pointerEvents="box-none"
+-        style={[{ height, minHeight, maxHeight, opacity, transform }]}
++        style={[
++          { height, minHeight, maxHeight, opacity, transform, pointerEvents: 'box-none' },
++        ]}
+       >
+-        <View pointerEvents="none" style={{ height: headerStatusBarHeight }} />
+-        <View pointerEvents="box-none" style={styles.content}>
++        <View
++          style={{ height: headerStatusBarHeight, pointerEvents: 'none' }}
++        />
++        <View style={[styles.content, { pointerEvents: 'box-none' }]}>
+           <Animated.View
+-            pointerEvents="box-none"
+             style={[
+               styles.left,
+               headerTitleAlign === 'center' && styles.expand,
+-              { marginStart: insets.left },
++              { marginStart: insets.left, pointerEvents: 'box-none' },
+               leftContainerStyle,
+             ]}
+           >
+             {leftButton}
+           </Animated.View>
+           <Animated.View
+-            pointerEvents="box-none"
+             style={[
+               styles.title,
+               {
++                pointerEvents: 'box-none',
+                 // Avoid the title from going offscreen or overlapping buttons
+                 maxWidth:
+                   headerTitleAlign === 'center'
+@@ -279,11 +280,10 @@ export default function Header(props: Props) {
+             })}
+           </Animated.View>
+           <Animated.View
+-            pointerEvents="box-none"
+             style={[
+               styles.right,
+               styles.expand,
+-              { marginEnd: insets.right },
++              { marginEnd: insets.right, pointerEvents: 'box-none' },
+               rightContainerStyle,
+             ]}
+           >
+diff --git a/node_modules/@react-navigation/elements/src/ResourceSavingView.tsx b/node_modules/@react-navigation/elements/src/ResourceSavingView.tsx
+index 1d45386..9ac4884 100644
+--- a/node_modules/@react-navigation/elements/src/ResourceSavingView.tsx
++++ b/node_modules/@react-navigation/elements/src/ResourceSavingView.tsx
+@@ -22,10 +22,10 @@ export default function ResourceSavingScene({
+         hidden={!visible}
+         style={[
+           { display: visible ? 'flex' : 'none' },
++          { pointerEvents: visible ? 'auto' : 'none' },
+           styles.container,
+           style,
+         ]}
+-        pointerEvents={visible ? 'auto' : 'none'}
+         {...rest}
+       >
+         {children}
+@@ -35,9 +35,11 @@ export default function ResourceSavingScene({
+ 
+   return (
+     <View
+-      style={[styles.container, style]}
+-      // box-none doesn't seem to work properly on Android
+-      pointerEvents={visible ? 'auto' : 'none'}
++      style={[
++        styles.container,
++        { pointerEvents: visible ? 'auto' : 'none' },
++        style,
++      ]}
+     >
+       <View
+         collapsable={false}
+@@ -46,8 +48,10 @@ export default function ResourceSavingScene({
+           // This is an workaround for a bug where the clipped view never re-appears
+           Platform.OS === 'ios' || Platform.OS === 'macos' ? !visible : true
+         }
+-        pointerEvents={visible ? 'auto' : 'none'}
+-        style={visible ? styles.attached : styles.detached}
++        style={[
++          visible ? styles.attached : styles.detached,
++          { pointerEvents: visible ? 'auto' : 'none' },
++        ]}
+       >
+         {children}
+       </View>

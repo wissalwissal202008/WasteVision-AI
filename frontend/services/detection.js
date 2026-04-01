@@ -121,4 +121,4 @@ export async function predictWithOffline(imageUri) {
   return detectWithTFLite(cachedTFLite, cachedModel, imageUri);
 }
 
-export { mapCocoToWaste, buildOfflineResult };
+export { mapCocoToWaste, buildOfflineResult, isTFLiteAvailable };

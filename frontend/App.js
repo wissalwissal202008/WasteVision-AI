@@ -1,21 +1,22 @@
 // Ordre important pour Expo Go / Android
 import "react-native-gesture-handler";
+import "./global.css";
 import { enableScreens } from "react-native-screens";
 enableScreens(false);
 
-import "./constants/theme";
-import "./i18n";
+import "./src/utils/theme-init";
+import "./src/utils/i18n";
 
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
-import i18n, { LANGUAGE_STORAGE_KEY, applyRTL } from "./i18n";
+import i18n, { LANGUAGE_STORAGE_KEY } from "./src/utils/i18n";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import AppNavigator from "./navigation/AppNavigator";
-import OnboardingScreen from "./screens/OnboardingScreen";
-import SplashScreen from "./screens/SplashScreen";
-import { ThemeProvider } from "./context/ThemeContext";
+import AppNavigator from "./src/utils/navigation/AppNavigator";
+import OnboardingScreen from "./src/screens/OnboardingScreen";
+import SplashScreen from "./src/screens/SplashScreen";
+import { ThemeProvider } from "./src/utils/ThemeContext";
 
 const ONBOARDING_KEY = "@wastevision_onboarding_done";
 const SPLASH_DURATION_MS = 2200;
@@ -73,8 +74,7 @@ export default function App() {
         ]);
         setHasSeenOnboarding(onboarding === "true");
         if (lang && ["fr", "en", "ar"].includes(lang)) {
-          i18n.changeLanguage(lang);
-          applyRTL(lang);
+          await i18n.changeLanguage(lang);
         }
       } catch {
         setHasSeenOnboarding(true);

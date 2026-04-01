@@ -3,6 +3,13 @@ import Constants from "expo-constants";
 
 const DEBUG = __DEV__;
 
+const EMPTY_STATS = {
+  total_co2_grams_saved: 0,
+  co2_saved_today_grams: 0,
+  counts_by_category: {},
+  co2_by_day: [],
+};
+
 /**
  * Resolve backend API base URL.
  * - Web: http://localhost:8001
@@ -35,14 +42,24 @@ export function getApiBase() {
 const API_BASE = getApiBase();
 
 /**
+ * Code langue court pour l’API (query ?lang=) — aligné sur i18n.language (ex. fr, en, ar).
+ */
+export function normalizeLangForApi(lang) {
+  if (lang == null || !String(lang).trim()) return "fr";
+  return String(lang).trim().split("-")[0].toLowerCase();
+}
+
+/**
  * Send image to backend POST /predict.
  * Converts image to FormData. On React Native, appends file via { uri, name, type }; on web, uses blob.
  * @param {string} uri - Local file URI (file:// or content URI) or blob URL
  * @param {string} [mimeType] - e.g. "image/jpeg"
+ * @param {string} [lang] - i18n.language (ou null → fr) : envoyé en ?lang= sur l’URL
  * @returns {Promise<{ waste_type: string, confidence: number, recycling_advice: string, ... }>}
  */
-export async function predict(uri, mimeType = "image/jpeg") {
-  const url = `${getApiBase()}/predict`;
+export async function predict(uri, mimeType = "image/jpeg", lang = null) {
+  const code = normalizeLangForApi(lang);
+  const url = `${getApiBase()}/predict?lang=${encodeURIComponent(code)}`;
   if (DEBUG) console.log("[API] Captured image URI:", uri);
   const formData = new FormData();
   if (Platform.OS === "web") {
@@ -61,7 +78,7 @@ export async function predict(uri, mimeType = "image/jpeg") {
       type: mimeType,
     });
   }
-  if (DEBUG) console.log("[API] Request POST", url, "FormData with file");
+  if (DEBUG) console.log("[API] Request POST", url, "FormData with file, lang=", code);
   let res;
   try {
     res = await fetch(url, {
@@ -101,10 +118,12 @@ export async function predict(uri, mimeType = "image/jpeg") {
  * POST /detect – real-time detection (multiple objects, bounding boxes).
  * @param {string} uri - Image URI
  * @param {string} [mimeType] - e.g. "image/jpeg"
+ * @param {string} [lang] - i18n.language → ?lang= (défaut fr)
  * @returns {Promise<{ detections: Array<{ label: string, confidence: number, bounding_box: [number,number,number,number], recycling_advice?: string }> }>}
  */
-export async function detect(uri, mimeType = "image/jpeg") {
-  const url = `${getApiBase()}/detect`;
+export async function detect(uri, mimeType = "image/jpeg", lang = null) {
+  const code = normalizeLangForApi(lang);
+  const url = `${getApiBase()}/detect?lang=${encodeURIComponent(code)}`;
   if (DEBUG) console.log("[API] Detect request:", url);
   const formData = new FormData();
   if (Platform.OS === "web") {
@@ -145,10 +164,57 @@ export async function detect(uri, mimeType = "image/jpeg") {
   return data;
 }
 
+/** Une seule requête /history à la fois (évite 3× GET identiques au montage web). */
+let historyFetchPromise = null;
+
 export async function getHistory() {
-  const res = await fetch(`${getApiBase()}/history`);
-  if (!res.ok) throw new Error("Failed to load history");
-  return res.json();
+  if (historyFetchPromise) return historyFetchPromise;
+  historyFetchPromise = (async () => {
+    try {
+      const res = await fetch(`${getApiBase()}/history`);
+      if (!res.ok) throw new Error("Failed to load history");
+      return res.json();
+    } catch (e) {
+      if (DEBUG) {
+        console.warn(
+          "[API] /history indisponible — démarrez le backend : cd backend && python -m uvicorn main:app --host 0.0.0.0 --port 8001",
+          e?.message || e
+        );
+      }
+      return [];
+    } finally {
+      historyFetchPromise = null;
+    }
+  })();
+  return historyFetchPromise;
+}
+
+let statsFetchPromise = null;
+
+/**
+ * GET /stats – impact tracker (CO2 grams saved + counts per category).
+ * @returns {Promise<{ total_co2_grams_saved: number, co2_saved_today_grams: number, counts_by_category: Record<string, number> }>}
+ */
+export async function getStats() {
+  if (statsFetchPromise) return statsFetchPromise;
+  statsFetchPromise = (async () => {
+    try {
+      const res = await fetch(`${getApiBase()}/stats`);
+      if (!res.ok) throw new Error("Failed to load stats");
+      return res.json();
+    } catch (e) {
+      if (DEBUG) {
+        console.warn(
+          "[API] /stats indisponible — même remède que pour /history (port 8001).",
+          e?.message || e
+        );
+      }
+      return { ...EMPTY_STATS };
+    } finally {
+      statsFetchPromise = null;
+    }
+  })();
+  return statsFetchPromise;
 }
 
 export function getUploadUrl(imageName) {

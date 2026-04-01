@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE_PATH = BASE_DIR / "data" / "wastevision.db"
+DATABASE_PATH = BASE_DIR / "data" / "waste.db"
 UPLOADS_DIR = BASE_DIR / "data" / "uploads"
 WEIGHTS_DIR = BASE_DIR / "data" / "weights"
 WEIGHTS_PATH = WEIGHTS_DIR / "model.keras"

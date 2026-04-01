@@ -1,5 +1,0 @@
-# WasteVision-AI training (run from ai_model/)
-tensorflow>=2.15.0
-numpy>=1.24.0
-opencv-python-headless>=4.8.0
-kaggle>=1.5.0

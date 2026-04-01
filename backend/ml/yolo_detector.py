@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import config
+from ml.classifier import recycling_advice_for_category
 from app.services import responses
 
 logger = logging.getLogger(__name__)
@@ -24,14 +25,6 @@ DISPLAY_NAMES = {
 }
 
 _yolo_model = None
-
-
-def _get_recycling_advice(category_key: str) -> str:
-    idx = CATEGORY_NAMES.index(category_key) if category_key in CATEGORY_NAMES else 5
-    row = responses.CATEGORY_INFO.get(idx, responses.CATEGORY_INFO[5])
-    instructions = row[8] if len(row) > 8 else None
-    bin_name = row[1]
-    return (instructions or bin_name or "Check local recycling rules.")[:200]
 
 
 def get_yolo_model():
@@ -55,7 +48,11 @@ def get_yolo_model():
         return None
 
 
-def detect_from_bytes_yolo(image_bytes: bytes, conf_threshold: float = 0.25) -> Optional[List[dict]]:
+def detect_from_bytes_yolo(
+    image_bytes: bytes,
+    conf_threshold: float = 0.25,
+    lang: str | None = None,
+) -> Optional[List[dict]]:
     """
     Run YOLOv8 on image bytes. Returns list of detections or None if YOLO not available.
     Each: { label, category, confidence, bounding_box: [x1,y1,x2,y2] normalized, recycling_advice }.
@@ -95,7 +92,7 @@ def detect_from_bytes_yolo(image_bytes: bytes, conf_threshold: float = 0.25) -> 
                     "category": category_key,
                     "confidence": round(conf, 4),
                     "bounding_box": [round(x1, 4), round(y1, 4), round(x2, 4), round(y2, 4)],
-                    "recycling_advice": _get_recycling_advice(category_key),
+                    "recycling_advice": recycling_advice_for_category(category_key, lang),
                 })
         return detections
     except Exception as e:

@@ -1,15 +1,19 @@
-# Dependencies
+﻿# Dependencies
 node_modules/
 frontend/node_modules/
+venv/
+.venv/
+env/
 backend/venv/
+
+# Python
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 .Python
 *.so
 .env
-.venv
-env/
 
 # Build & IDE
 dist/
@@ -21,10 +25,14 @@ build/
 *.swp
 *.swo
 
-# Data & models (ne pas versionner les données utilisateur ni les poids du modèle)
+# Data & modèles
+# Git ne peut pas ignorer « seulement si > 50 Mo » : on exclut les formats binaires
+# lourds typiques (.pt, .keras, etc.). Pour versionner de gros fichiers, utiliser Git LFS.
 backend/data/uploads/
 backend/data/*.db
 backend/data/weights/
+*.pt
+*.pth
 *.keras
 *.h5
 
