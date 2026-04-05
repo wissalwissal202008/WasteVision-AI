@@ -90,7 +90,9 @@ WasteVision-AI/
 ├── TECHNICAL.md
 ├── ROADMAP.md
 ├── STRUCTURE.md                   # Ce fichier
-├── ARCHITECTURE.md
+├── ARCHITECTURE.md                # Système (Expo, FastAPI, ML, flux données)
+├── MODEL.md                       # Dataset, entraînement, limites
+├── RELEASE_CHECKLIST.md           # Pré-production (tests, build, sécurité)
 ├── DEVELOPMENT_PLAN.md
 └── .gitignore
 ```

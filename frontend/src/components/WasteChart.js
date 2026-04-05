@@ -86,6 +86,7 @@ function buildChartConfig(width) {
 }
 
 export default function WasteChart() {
+  const { t } = useTranslation();
   const [screenWidth, setScreenWidth] = useState(
     () => Dimensions.get("window").width
   );

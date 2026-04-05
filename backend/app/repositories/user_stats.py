@@ -36,7 +36,7 @@ def _today_utc() -> str:
 
 
 def _last_7_days_utc() -> list[str]:
-    """Oldest → newest (7 dates including today, UTC)."""
+    """Oldest -> newest (7 dates including today, UTC)."""
     base = datetime.now(timezone.utc).date()
     return [(base - timedelta(days=6 - i)).isoformat() for i in range(7)]
 
@@ -51,7 +51,7 @@ def _normalize_category(category: str | None) -> str:
 
 
 def record_validated_detection(category: str | None) -> None:
-    """Call after a successful /predict or each box persisted from /detect.
+    """Call after a successful /predict, /classify, or each box from /detect.
 
     Skips updates when ``category`` is missing (None or blank): those detections
     must not be folded into ``non_recyclable`` for impact stats.
@@ -69,39 +69,22 @@ def record_validated_detection(category: str | None) -> None:
 
     conn = get_connection()
     try:
-        row = conn.execute(
-            "SELECT total_co2_grams, co2_today_grams, stats_day FROM user_stats WHERE id = ?",
-            (SINGLETON_ID,),
-        ).fetchone()
-        if row is None:
-            conn.execute("INSERT OR IGNORE INTO user_stats (id) VALUES (?)", (SINGLETON_ID,))
-            conn.commit()
-            row = conn.execute(
-                "SELECT total_co2_grams, co2_today_grams, stats_day FROM user_stats WHERE id = ?",
-                (SINGLETON_ID,),
-            ).fetchone()
-
-        total = float(row["total_co2_grams"] or 0)
-        today_co2 = float(row["co2_today_grams"] or 0)
-        stats_day = row["stats_day"] or ""
-
-        if stats_day != today:
-            today_co2 = 0.0
-            stats_day = today
-
-        total += grams
-        today_co2 += grams
-
+        conn.execute("INSERT OR IGNORE INTO user_stats (id) VALUES (?)", (SINGLETON_ID,))
+        # Single atomic UPDATE: avoids lost updates under concurrent /predict, /detect, /classify.
+        # co2_today: reset to this scan's grams if stats_day is not today, else add grams.
         conn.execute(
             f"""
             UPDATE user_stats SET
-                total_co2_grams = ?,
-                co2_today_grams = ?,
                 stats_day = ?,
-                {col} = {col} + 1
+                co2_today_grams = CASE
+                    WHEN COALESCE(stats_day, '') != ? THEN ?
+                    ELSE COALESCE(co2_today_grams, 0) + ?
+                END,
+                total_co2_grams = COALESCE(total_co2_grams, 0) + ?,
+                {col} = COALESCE({col}, 0) + 1
             WHERE id = ?
             """,
-            (total, today_co2, stats_day, SINGLETON_ID),
+            (today, today, grams, grams, grams, SINGLETON_ID),
         )
         if grams > 0:
             conn.execute(
@@ -166,3 +149,4 @@ def get_stats() -> dict:
         }
     finally:
         conn.close()
+

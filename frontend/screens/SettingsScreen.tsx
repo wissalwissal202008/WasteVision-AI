@@ -564,7 +564,9 @@ export default function SettingsScreen({ navigation }: { navigation: Nav }) {
                 {t("settings.storageUsed", "Stockage utilisé")}
               </Text>
               <Text className="font-bold text-gray-900">
-                {(storageKb / 1024).toFixed(1)} KB
+                {storageKb >= 1024
+                  ? `${(storageKb / 1024).toFixed(1)} MB`
+                  : `${storageKb} KB`}
               </Text>
             </View>
           </View>

@@ -28,7 +28,7 @@ Dans **chaque fichier** qui utilise `StyleSheet.create()` (screens et constants/
 5. **screens/HistoryScreen.js**  
    Idem.
 
-6. **navigation/AppNavigator.js**  
+6. **src/utils/navigation/AppNavigator.js**  
    Si tu as des options de style avec des nombres (ex. `headerTitleStyle`), ils doivent être des nombres.
 
 ## Exemple correct

@@ -1,6 +1,7 @@
 """POST /classify – same as /predict, returns Flutter-friendly JSON (object_name, material, category, recycling_tips)."""
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 from app.repositories import history as history_repo
+from app.repositories import user_stats as user_stats_repo
 from app.services.predictor import predict_from_bytes
 import config
 
@@ -34,6 +35,10 @@ async def classify(
         recommended_bin=response_dict["recommended_bin"],
     )
     response_dict["scan_id"] = scan_id
+    try:
+        user_stats_repo.record_validated_detection(response_dict["waste_category"])
+    except Exception:
+        pass
     # Flutter-friendly shape: waste_type, confidence, recycling_advice + legacy keys
     return {
         "object_name": response_dict.get("object_name", response_dict["waste_category"]),

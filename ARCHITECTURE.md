@@ -1,119 +1,74 @@
-# Architecture WasteVision AI – Composants d’une app mobile moderne
+﻿# WasteVision AI — System architecture
 
-Référence : Splash, Onboarding, Auth, Home, Navigation, Profile, Settings, Search, Notifications, Error & Empty states.
-
----
-
-## 1️⃣ Splash Screen
-
-| Statut | Détail |
-|--------|--------|
-| ✅ Ajouté | Premier écran au démarrage : **logo** WasteVision, **animation** (fade + scale), **indicateur de chargement** (spinner). Affiché ~2,2 s puis passage à l’onboarding ou à l’app. |
+End-to-end view of the **Expo** client, **FastAPI** backend, and **ML** stack. For a **UI / screen map**, see [docs/UI_ARCHITECTURE.md](docs/UI_ARCHITECTURE.md).
 
 ---
 
-## 2️⃣ Onboarding (première expérience)
-
-| Statut | Détail |
-|--------|--------|
-| ✅ Ajouté | Affiché à la **première ouverture** : 3 écrans (présentation, bénéfices, CTA « Commencer »). Stockage `@wastevision_onboarding_done` pour ne plus afficher. |
-
-**Objectif** : réduire la friction, expliquer ce que fait l’app et pourquoi l’utiliser.
-
----
-
-## 2️⃣ Authentication (Login / Signup)
-
-| Statut | Détail |
-|--------|--------|
-| 🔲 Prévu | Pas encore implémenté. **Prévu** : écrans Login / Signup, « Mot de passe oublié », option « Continuer en invité ». Backend auth (JWT) ou **free/open-source auth only** (e.g. Firebase/Supabase free tier) – see [CONSTRAINTS.md](CONSTRAINTS.md). |
-
----
-
-## 3️⃣ Home Screen (Dashboard)
-
-| Statut | Détail |
-|--------|--------|
-| ✅ Présent | **Accueil** : CTA « Scanner un déchet », résumé impact (nombre de scans, CO₂), accès rapide au scan. **Stats** (onglet) : objectifs, progression. |
-
----
-
-## 4️⃣ Navigation
-
-| Statut | Détail |
-|--------|--------|
-| ✅ Présent | **Bottom Tab Navigation** : Accueil, Scan, Stats, Coach, Historique, Profil, Paramètres. Pas de drawer/sidebar pour rester simple. |
-
----
-
-## 5️⃣ User Profile
-
-| Statut | Détail |
-|--------|--------|
-| ✅ Ajouté | Onglet **Profil** : infos utilisateur (mode invité ou connecté), photo, email (quand auth en place), lien vers Paramètres. |
-
----
-
-## 6️⃣ Settings
-
-| Statut | Détail |
-|--------|--------|
-| ✅ Ajouté | Écran **Paramètres** : notifications, thème (clair/sombre), langue, À propos, confidentialité. |
-
----
-
-## 7️⃣ Notifications UI
-
-| Statut | Détail |
-|--------|--------|
-| ✅ Ajouté | Écran **Notifications** (onglet Notif) : **empty state** « Aucune notification » avec message. Prévu : push (Expo / FCM), rappels, liste des alertes. |
-
----
-
-## 8️⃣ Search / Filter
-
-| Statut | Détail |
-|--------|--------|
-| ✅ Ajouté | **Historique** : **barre de recherche** (produit, bac), **filtres** par catégorie (Tous, Plastique, Verre, etc.). Empty state « Aucun résultat » si filtre/recherche sans résultat. |
-
----
-
-## 9️⃣ Backend / Database
-
-| Statut | Détail |
-|--------|--------|
-| ✅ Présent | **Backend** : FastAPI (Python), Uvicorn. **Base** : SQLite (historique des scans, corrections). Données utilisateur / auth à ajouter avec l’authentification. |
-
----
-
-## 🔟 Error & Empty States
-
-| Statut | Détail |
-|--------|--------|
-| ✅ Ajouté | **ErrorBoundary** pour les crashes. **Composants** : `EmptyState`, `ErrorState`, `NoInternetState`, `ServerErrorState` (icône, titre, message, bouton Réessayer). **Historique** : états « Pas de connexion », « Erreur », « Aucun scan », « Aucun résultat ». |
-
----
-
-## Flow utilisateur (résumé)
+## High-level data flow
 
 ```
-Onboarding (1ère fois)
-       ↓
-Accueil (Home) ←→ Navigation (tabs)
-       ↓              ├ Accueil
-[Login/Signup]        ├ Scan
-(prévu)               ├ Stats
-       ↓              ├ Coach
-Main App              ├ Historique
-                      ├ Profil
-                      └ Paramètres
+  [Expo app]  Camera / Gallery / Live scan
+       |
+       v
+  multipart POST  (/predict | /classify | /detect)  + optional ?lang=
+       |
+       v
+  [FastAPI]  --->  preprocess (OpenCV / PIL)
+       |                |
+       |                +-- CNN (model.keras)  --> class + confidence
+       |                +-- YOLO (optional .pt) --> boxes + classes
+       v
+  SQLite (history, stats, detection logs) + uploads/
+       |
+       v
+  JSON  --->  Result UI / live overlays
 ```
 
 ---
 
-## Prochaines étapes recommandées
+## 1. Frontend (Expo / React Native)
 
-1. **Auth** (optional): use only free/open-source (e.g. JWT, Firebase/Supabase free tier). See CONSTRAINTS.md.
-2. **Notifications** : Expo Notifications ou FCM pour rappels et engagement.
-3. **Erreurs** : écran « Pas de connexion », retry, messages clairs.
-4. **Recherche / filtres** : dans l’historique (par catégorie, date).
+| Area | Role |
+|------|------|
+| Entry | `App.js` — gesture handler, theme, i18n, splash, onboarding, navigator. |
+| Navigation | `src/utils/navigation/AppNavigator.js` — bottom tabs; scan stack. |
+| Screens | `frontend/screens/`; re-exports in `src/screens/` where used. |
+| API | `frontend/api/client.js` — `expo.extra.apiBaseUrl`. |
+| i18n | `src/utils/i18n.js`, `frontend/locales/*.json` — FR / EN / AR. |
+
+**Production:** set `app.json` `extra.apiBaseUrl`; use HTTPS in release.
+
+---
+
+## 2. Backend (FastAPI)
+
+Routers under `app/api/`: predict, classify, detect, history, stats, feedback, correction, retrain. SQLite repositories; config in `config.py` (DB path, uploads, weights).
+
+---
+
+## 3. AI pipeline
+
+- **CNN:** `backend/data/weights/model.keras` — `/predict`, `/classify`, fallback `/detect`.
+- **YOLOv8 (optional):** `yolov8_waste.pt` — multi-object `/detect`.
+- **Training:** `ai-model/` — see [MODEL.md](MODEL.md).
+
+---
+
+## 4. Camera to response
+
+1. User captures image (or live interval).
+2. Client POSTs multipart image.
+3. Server validates, saves upload, runs model.
+4. Server persists history/stats; returns JSON.
+
+---
+
+## 5. Related docs
+
+| Document | Content |
+|----------|---------|
+| [MODEL.md](MODEL.md) | Dataset, training, limits |
+| [STRUCTURE.md](STRUCTURE.md) | Folder tree |
+| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Pre-release checks |
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for hosting.

@@ -11,6 +11,22 @@ Application mobile **wastevision-ai** v1.0.0 (voir `frontend/package.json`).
 
 ---
 
+## App Preview
+
+> Add screenshots under `docs/assets/` with the names below (placeholders until you add PNGs).
+
+| Camera | Detection result |
+|--------|------------------|
+| ![Camera](docs/assets/preview-camera.png) | ![Result](docs/assets/preview-result.png) |
+
+| Statistics | History |
+|------------|---------|
+| ![Stats](docs/assets/preview-stats.png) | ![History](docs/assets/preview-history.png) |
+
+*EN:* **Point your camera at waste — get category and recycling tips (Expo + FastAPI + TensorFlow).**
+
+---
+
 ## Ce que fait l’application
 
 | Étape | Description |
@@ -213,7 +229,8 @@ WasteVision-AI/
 │   ├── locales/       # fr.json, en.json, ar.json
 │   └── api/client.js
 ├── ai-model/          # Scripts d’entraînement (CNN, YOLOv8)
-├── docs/              # Déploiement, intégration, APIs gratuites, etc.
+├── docs/              # Déploiement, démo, UX, assets (captures README)
+│   └── assets/        # preview-*.png (voir section App Preview)
 └── README.md
 ```
 
@@ -223,11 +240,19 @@ Pour une vue plus détaillée des dossiers : [STRUCTURE.md](STRUCTURE.md).
 
 ## Documentation
 
-- **[RUN.md](RUN.md)** — Enchaînement : backend, Expo, tests.
-- **[SETUP.md](SETUP.md)** — Installation, modèle, backend, APK.
-- **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** — Mise en production.
-- **[CONSTRAINTS.md](CONSTRAINTS.md)** — Contraintes open source / sans services payants.
-- **[BUILD_NATIF.md](BUILD_NATIF.md)** — Build natif (APK / IPA).
+| Document | Description |
+|----------|-------------|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Expo, FastAPI, CNN/YOLO, flux caméra → API |
+| [MODEL.md](MODEL.md) | Dataset 6 classes, entraînement, limites, améliorations |
+| [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) | Tests, build, déploiement, sécurité |
+| [docs/UI_ARCHITECTURE.md](docs/UI_ARCHITECTURE.md) | Carte des écrans et états UX |
+| [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md) | Script vidéo 30–60 s |
+| [docs/UX_RECOMMENDATIONS.md](docs/UX_RECOMMENDATIONS.md) | Chargement, erreurs, messages utilisateur |
+| [RUN.md](RUN.md) | Backend, Expo, tests |
+| [SETUP.md](SETUP.md) | Installation, modèle, APK |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Mise en production |
+| [CONSTRAINTS.md](CONSTRAINTS.md) | Stack open source |
+| [BUILD_NATIF.md](BUILD_NATIF.md) | Build natif (APK / IPA) |
 
 ---
 

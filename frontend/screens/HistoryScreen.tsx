@@ -212,7 +212,7 @@ export default function HistoryScreen({ navigation }: HistoryScreenProps) {
     if (filterCategory !== "all") {
       list = list.filter(
         (i) =>
-          (i.predicted_category || i.corrected_category) === filterCategory
+          (i.corrected_category || i.predicted_category) === filterCategory
       );
     }
     if (searchQuery.trim()) {
